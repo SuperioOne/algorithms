@@ -1,6 +1,6 @@
 use std::ops::Add;
 
-pub fn get_max_subarray<'a, T>(input: &'a [T]) -> &'a [T]
+pub fn get_max_subarray<T>(input: &[T]) -> &[T]
 where
   T: Add<Output = T> + PartialOrd + Copy + Default,
 {

@@ -14,10 +14,12 @@ where
     while input.get(i).unwrap().gt(input.get(i + 1).unwrap()) {
       input.swap(i, i + 1);
 
-      match i.overflowing_sub(1) {
-        (_, true) => break,
-        (value, false) => {
+      match i.checked_sub(1) {
+        Some(value) => {
           i = value;
+        }
+        None => {
+          break;
         }
       }
     }
