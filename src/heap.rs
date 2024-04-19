@@ -29,7 +29,7 @@ where
     return;
   }
 
-  for idx in (0..length).rev() {
+  for idx in (0..length).step_by(2).rev() {
     let p_idx = parent!(idx);
     let l_idx = left_node!(p_idx);
     let r_idx = right_node!(p_idx);
@@ -61,7 +61,7 @@ where
     return;
   }
 
-  for idx in (0..length).rev() {
+  for idx in (0..length).step_by(2).rev() {
     let p_idx = parent!(idx);
     let l_idx = left_node!(p_idx);
     let r_idx = right_node!(p_idx);
@@ -99,7 +99,7 @@ where
 
   let max_idx = length - 1;
 
-  for idx in (0..length).rev() {
+  for idx in (0..length).step_by(2).rev() {
     let p_idx = parent!(idx);
     let l_idx = max_idx.checked_sub(left_node!(p_idx));
     let r_idx = max_idx.checked_sub(right_node!(p_idx));
@@ -136,7 +136,7 @@ where
 
   let max_idx = length - 1;
 
-  for idx in (0..length).rev() {
+  for idx in (0..length).step_by(2).rev() {
     let p_idx = parent!(idx);
     let l_idx = max_idx.checked_sub(left_node!(p_idx));
     let r_idx = max_idx.checked_sub(right_node!(p_idx));

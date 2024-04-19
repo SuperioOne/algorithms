@@ -24,14 +24,19 @@ where
     }
   }
 
-  pub fn from_iter(iterator: impl std::iter::Iterator<Item = T>) -> Self {
-    let mut vec: Vec<T> = Vec::from_iter(iterator);
-    reverse_min_heapify(&mut vec);
-    Self { inner_buf: vec }
-  }
-
   pub fn iter(&self) -> Iter<T> {
     self.inner_buf.iter()
+  }
+}
+
+impl<T> FromIterator<T> for MinPriorityQueue<T>
+where
+  T: PartialOrd,
+{
+  fn from_iter<A: IntoIterator<Item = T>>(iter: A) -> Self {
+    let mut vec: Vec<T> = Vec::from_iter(iter);
+    reverse_min_heapify(&mut vec);
+    Self { inner_buf: vec }
   }
 }
 
@@ -72,8 +77,12 @@ where
   T: PartialOrd,
 {
   fn push(&mut self, value: T) {
+    let rebalance = self.inner_buf.last().is_some_and(|v| v.lt(&value));
     self.inner_buf.push(value);
-    reverse_min_heapify(&mut self.inner_buf);
+
+    if rebalance {
+      reverse_min_heapify(&mut self.inner_buf);
+    }
   }
 
   fn replace(&mut self, old_idx: usize, new: T) -> bool {
@@ -81,7 +90,7 @@ where
       Some(val) => {
         *val = new;
         reverse_min_heapify(&mut self.inner_buf);
-        return true;
+        true
       }
 
       None => false,
@@ -91,7 +100,15 @@ where
   fn pop(&mut self) -> Option<T> {
     match self.inner_buf.pop() {
       value @ Some(_) => {
-        reverse_min_heapify(&mut self.inner_buf);
+        if self.inner_buf.len() > 1 {
+          let l_child: &T = self.inner_buf.get(self.inner_buf.len() - 1).unwrap();
+          let r_child: &T = self.inner_buf.get(self.inner_buf.len() - 2).unwrap();
+
+          if l_child.gt(r_child) {
+            reverse_min_heapify(&mut self.inner_buf);
+          }
+        }
+
         value
       }
       None => None,
