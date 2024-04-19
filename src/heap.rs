@@ -82,3 +82,81 @@ where
     }
   }
 }
+
+// Builds heap structure from n to 0, instead of 0 to n.
+// It may look similar to min/max_heapify but it's gurantees
+// the max/min value is the last element.
+
+pub fn reverse_max_heapify<T>(input: &mut [T])
+where
+  T: PartialOrd,
+{
+  let length = input.len();
+
+  if length < 2 {
+    return;
+  }
+
+  let max_idx = length - 1;
+
+  for idx in (0..length).rev() {
+    let p_idx = parent!(idx);
+    let l_idx = max_idx.checked_sub(left_node!(p_idx));
+    let r_idx = max_idx.checked_sub(right_node!(p_idx));
+    let p_idx = max_idx - p_idx;
+
+    let largest = {
+      if l_idx.is_some_and(|v| v < length && input.get(p_idx).unwrap().lt(input.get(v).unwrap())) {
+        l_idx.unwrap()
+      } else if r_idx
+        .is_some_and(|v| v < length && input.get(p_idx).unwrap().lt(input.get(v).unwrap()))
+      {
+        r_idx.unwrap()
+      } else {
+        p_idx
+      }
+    };
+
+    if largest != p_idx {
+      input.swap(p_idx, largest);
+      reverse_max_heapify(&mut input[..=largest]);
+    }
+  }
+}
+
+pub fn reverse_min_heapify<T>(input: &mut [T])
+where
+  T: PartialOrd,
+{
+  let length = input.len();
+
+  if length < 2 {
+    return;
+  }
+
+  let max_idx = length - 1;
+
+  for idx in (0..length).rev() {
+    let p_idx = parent!(idx);
+    let l_idx = max_idx.checked_sub(left_node!(p_idx));
+    let r_idx = max_idx.checked_sub(right_node!(p_idx));
+    let p_idx = max_idx - p_idx;
+
+    let smallest = {
+      if l_idx.is_some_and(|v| v < length && input.get(p_idx).unwrap().gt(input.get(v).unwrap())) {
+        l_idx.unwrap()
+      } else if r_idx
+        .is_some_and(|v| v < length && input.get(p_idx).unwrap().gt(input.get(v).unwrap()))
+      {
+        r_idx.unwrap()
+      } else {
+        p_idx
+      }
+    };
+
+    if smallest != p_idx {
+      input.swap(p_idx, smallest);
+      reverse_min_heapify(&mut input[..=smallest]);
+    }
+  }
+}
