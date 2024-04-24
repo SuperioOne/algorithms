@@ -1,3 +1,5 @@
+use crate::random::NumberGenerator;
+
 pub fn sort<T>(input: &mut [T])
 where
   T: PartialOrd,
@@ -6,6 +8,23 @@ where
     return;
   }
 
+  let s_idx = partition(input);
+
+  if s_idx == 0 {
+    sort(input);
+  } else if s_idx > 0 && s_idx < (input.len() - 1) {
+    sort(&mut input[..=s_idx]);
+    sort(&mut input[s_idx + 1..]);
+  } else {
+    sort(&mut input[..s_idx]);
+  }
+}
+
+#[inline]
+fn partition<T>(input: &mut [T]) -> usize
+where
+  T: PartialOrd,
+{
   let mut s_idx: usize = 0;
   let length = input.len() - 1;
 
@@ -25,51 +44,31 @@ where
 
   input.swap(s_idx, input.len() - 1);
 
+  s_idx
+}
+
+pub fn sort_randomized<T>(input: &mut [T], generator: &mut impl NumberGenerator<usize>)
+where
+  T: PartialOrd,
+{
+  if input.len() < 2 {
+    return;
+  }
+
+  let pivot = generator.get_next() % input.len();
+
+  if pivot != (input.len() - 1) {
+    input.swap(pivot, input.len() - 1);
+  }
+
+  let s_idx = partition(input);
+
   if s_idx == 0 {
-    sort(input);
-  } else if s_idx > 0 && s_idx < length {
-    sort(&mut input[..=s_idx]);
-    sort(&mut input[s_idx + 1..]);
+    sort_randomized(input, generator);
+  } else if s_idx > 0 && s_idx < (input.len() - 1) {
+    sort_randomized(&mut input[..=s_idx], generator);
+    sort_randomized(&mut input[s_idx + 1..], generator);
   } else {
-    sort(&mut input[..s_idx]);
+    sort_randomized(&mut input[..s_idx], generator);
   }
 }
-
-pub enum PivotSelection {
-  CustomIndex(usize),
-  Gaussian(i64),
-  LogNormal(i64),
-}
-
-pub enum PivotError {
-  OutOfRange,
-}
-
-// pub fn sort_randomized<T>(input: &mut [T], option: PivotSelection) -> Result<(), PivotError>
-// where
-//   T: PartialOrd,
-// {
-//   if input.len() < 2 {
-//     return Ok(());
-//   }
-//
-//   let pivot_idx = match option {
-//     PivotSelection::CustomIndex(idx) => {
-//       if idx > input.len() {
-//         return Err(PivotError::OutOfRange);
-//       } else {
-//         idx
-//       }
-//     }
-//     PivotSelection::Gaussian(seed) => {}
-//     PivotSelection::LogNormal(seed) => todo!(),
-//   };
-//
-//   if pivot_idx != input.len() - 1 {
-//     input.swap(pivot_idx, input.len() - 1);
-//   }
-//
-//   sort(input);
-//
-//   Ok(())
-// }

@@ -206,12 +206,22 @@ mod heap_sort_test {
 }
 
 mod quick_sort_test {
+  use algorithms::random::lcg::Lcg;
+
   use crate::TestStruct;
 
   #[test]
   fn sort_numbers() {
     let (sorted, mut input) = test_array_i32!();
     algorithms::sorting::quick_sort::sort(&mut input);
+    assert_eq!(sorted, input)
+  }
+
+  #[test]
+  fn sort_numbers_randomized() {
+    let (sorted, mut input) = test_array_i32!();
+    let mut generator: Lcg<usize> = Lcg::new(13);
+    algorithms::sorting::quick_sort::sort_randomized(&mut input, &mut generator);
     assert_eq!(sorted, input)
   }
 

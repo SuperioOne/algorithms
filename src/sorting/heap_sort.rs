@@ -1,4 +1,4 @@
-use crate::min_heapify;
+use crate::heap::min_heapify;
 
 pub fn sort<T>(input: &mut [T])
 where

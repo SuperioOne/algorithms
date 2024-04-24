@@ -1,7 +1,6 @@
-use std::slice::Iter;
-
 use super::PriorityQueue;
-use crate::reverse_min_heapify;
+use crate::heap::reverse_min_heapify;
+use std::slice::Iter;
 
 #[derive(Debug)]
 pub struct MinPriorityQueue<T> {

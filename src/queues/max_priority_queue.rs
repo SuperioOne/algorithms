@@ -1,7 +1,8 @@
 use std::slice::Iter;
 
+use crate::heap::reverse_max_heapify;
+
 use super::PriorityQueue;
-use crate::reverse_max_heapify;
 
 #[derive(Debug)]
 pub struct MaxPriorityQueue<T> {
