@@ -83,8 +83,8 @@ where
   }
 }
 
-// Builds heap structure from n to 0, instead of 0 to n.
-// It may look similar to min/max_heapify but it's gurantees
+// Builds heap structure from n to 0, instead of 0 to n.j
+// It may look similar to min/max_heapify but it's guarantees
 // the max/min value is the last element.
 
 pub fn max_heapify_rev<T>(input: &mut [T])
