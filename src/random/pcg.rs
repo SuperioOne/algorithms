@@ -55,11 +55,19 @@ pub struct McgXslRr<TIn, TOut> {
   _p_out: PhantomData<TOut>,
 }
 
+pub struct PcgUsizeWrapper {
+  #[cfg(target_pointer_width = "64")]
+  inner: Pcg64RxsMXs64,
+
+  #[cfg(target_pointer_width = "32")]
+  inner: Pcg64RxsMXs6,
+}
+
 impl<TIn, TOut> McgXshRs<TIn, TOut> {
   pub fn new(seed: TIn) -> Self {
     Self {
       seed,
-      _p_out: PhantomData,
+      _p_out: PhantomData::default(),
     }
   }
 
@@ -178,6 +186,38 @@ impl<TIn, TOut> McgXslRr<TIn, TOut> {
 
   pub fn get_seed(&self) -> &TIn {
     &self.seed
+  }
+}
+
+impl PcgUsizeWrapper {
+  pub fn new(seed: usize) -> Self {
+    #[cfg(target_pointer_width = "64")]
+    {
+      Self {
+        inner: Pcg64RxsMXs64::new(seed as u64),
+      }
+    }
+
+    #[cfg(target_pointer_width = "32")]
+    {
+      Self {
+        inner: Pcg64RxsMXs32::new(seed as u32),
+      }
+    }
+  }
+
+  pub fn reset_seed(&mut self, new_seed: usize) -> &mut Self {
+    #[cfg(target_pointer_width = "64")]
+    self.inner.reset_seed(new_seed as u64);
+
+    #[cfg(target_pointer_width = "32")]
+    self.inner.reset_seed(new_seed as u32);
+
+    self
+  }
+
+  pub fn get_seed(&self) -> usize {
+    self.inner.seed as usize
   }
 }
 
@@ -635,12 +675,29 @@ impl Iterator for McgXslRr<u128, u64> {
   }
 }
 
+// Usize
+
+impl NumberGenerator<usize> for PcgUsizeWrapper {
+  fn get_next(&mut self) -> usize {
+    self.inner.get_next() as usize
+  }
+}
+
+impl Iterator for PcgUsizeWrapper {
+  type Item = usize;
+
+  fn next(&mut self) -> Option<Self::Item> {
+    Some(self.get_next() as usize)
+  }
+}
+
 // Type Aliases
 
 pub type Pcg8 = OneSeqXshRr<u16, u8>;
 pub type Pcg16 = OneSeqXshRr<u32, u16>;
 pub type Pcg32 = OneSeqXshRr<u64, u32>;
 pub type Pcg64 = OneSeqXshRr<u128, u64>;
+pub type PcgUsize = PcgUsizeWrapper;
 
 pub type Pcg16XshRr8 = OneSeqXshRr<u16, u8>;
 pub type Pcg32XshRr16 = OneSeqXshRr<u32, u16>;

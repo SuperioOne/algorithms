@@ -49,7 +49,7 @@ macro_rules! test_array_struct {
   };
 }
 
-mod merge_sort_test {
+mod merge_sort {
   use crate::TestStruct;
 
   #[test]
@@ -88,7 +88,7 @@ mod merge_sort_test {
   }
 }
 
-mod insertion_sort_test {
+mod insertion_sort {
   use crate::TestStruct;
 
   #[test]
@@ -127,7 +127,7 @@ mod insertion_sort_test {
   }
 }
 
-mod bubble_sort_test {
+mod bubble_sort {
   use crate::TestStruct;
 
   #[test]
@@ -166,7 +166,7 @@ mod bubble_sort_test {
   }
 }
 
-mod heap_sort_test {
+mod heap_sort {
   use crate::TestStruct;
 
   #[test]
@@ -205,8 +205,8 @@ mod heap_sort_test {
   }
 }
 
-mod quick_sort_test {
-  use algorithms::random::lcg::Lcg;
+mod quick_sort {
+  use algorithms::random::pcg::PcgUsize;
 
   use crate::TestStruct;
 
@@ -220,7 +220,7 @@ mod quick_sort_test {
   #[test]
   fn sort_numbers_randomized() {
     let (sorted, mut input) = test_array_i32!();
-    let mut generator: Lcg<usize> = Lcg::new(13);
+    let mut generator: PcgUsize = PcgUsize::new(13);
     algorithms::sorting::quick_sort::sort_randomized(&mut input, &mut generator);
     assert_eq!(sorted, input)
   }

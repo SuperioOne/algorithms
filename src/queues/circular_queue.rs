@@ -41,16 +41,16 @@ impl<T> CircularQueue<T> {
     if idx >= self.len {
       None
     } else {
-      unsafe {
-        let item_ptr = self
+      let item_ptr = unsafe {
+        self
           .inner
-          .add(get_circular_idx!(self.head, idx, self.capacity));
+          .add(get_circular_idx!(self.head, idx, self.capacity))
+      };
 
-        if item_ptr.is_null() {
-          None
-        } else {
-          Some(&*item_ptr)
-        }
+      if item_ptr.is_null() {
+        None
+      } else {
+        unsafe { Some(&*item_ptr) }
       }
     }
   }
@@ -59,16 +59,16 @@ impl<T> CircularQueue<T> {
     if idx >= self.len {
       None
     } else {
-      unsafe {
-        let item_ptr = self
+      let item_ptr = unsafe {
+        self
           .inner
-          .add(get_circular_idx!(self.head, idx, self.capacity));
+          .add(get_circular_idx!(self.head, idx, self.capacity))
+      };
 
-        if item_ptr.is_null() {
-          None
-        } else {
-          Some(&mut *item_ptr)
-        }
+      if item_ptr.is_null() {
+        None
+      } else {
+        unsafe { Some(&mut *item_ptr) }
       }
     }
   }
@@ -122,45 +122,52 @@ impl<T> CircularQueue<T> {
       return Ok(());
     }
 
-    unsafe {
-      let new_layout = Layout::array::<T>(new_capacity).map_err(|_| QueueError::InvalidLayout)?;
-      let new_buf: *mut T = alloc(new_layout) as *mut T;
+    let new_layout = Layout::array::<T>(new_capacity).map_err(|_| QueueError::InvalidLayout)?;
+    let old_layout = Layout::array::<T>(self.capacity).map_err(|_| QueueError::InvalidLayout)?;
+    let new_buf: *mut T = unsafe { alloc(new_layout) as *mut T };
 
-      if !self.inner.is_null() && self.len > 0 {
+    if !self.inner.is_null() {
+      if self.len() > 0 {
         // Tail > Head
         if self.head + self.len < self.capacity {
-          self
-            .inner
-            .add(self.head)
-            .copy_to_nonoverlapping(new_buf, self.len);
+          unsafe {
+            self
+              .inner
+              .add(self.head)
+              .copy_to_nonoverlapping(new_buf, self.len);
+          }
         }
         // Tail < Head
         else {
           let right_count = self.capacity - self.head;
           let left_count = self.len - (right_count);
 
-          self
-            .inner
-            .add(self.head)
-            .copy_to_nonoverlapping(new_buf, right_count);
-
-          if left_count > 0 {
+          unsafe {
             self
               .inner
-              .copy_to_nonoverlapping(new_buf.add(right_count), left_count);
+              .add(self.head)
+              .copy_to_nonoverlapping(new_buf, right_count);
+          }
+
+          if left_count > 0 {
+            unsafe {
+              self
+                .inner
+                .copy_to_nonoverlapping(new_buf.add(right_count), left_count);
+            }
           }
         }
-
-        self.head = 0;
-        let old_buf = self.inner;
-        let layout = Layout::array::<T>(self.capacity).map_err(|_| QueueError::InvalidLayout)?;
-
-        dealloc(old_buf as *mut u8, layout);
       }
 
-      self.inner = new_buf;
-      self.capacity = new_capacity;
+      unsafe {
+        dealloc(self.inner as *mut u8, old_layout);
+      }
     }
+
+    // Resize operation always defragments and puts head element to the 0.
+    self.head = 0;
+    self.inner = new_buf;
+    self.capacity = new_capacity;
 
     Ok(())
   }
@@ -190,22 +197,20 @@ impl<T> Queue<T> for CircularQueue<T> {
       return None;
     }
 
-    unsafe {
-      let head = self.inner.add(self.head);
+    let head = unsafe { self.inner.add(self.head) };
 
-      if head.is_null() {
-        None
-      } else {
-        let result = head.read();
+    if head.is_null() {
+      None
+    } else {
+      let result = unsafe { head.read() };
 
-        self.len -= 1;
+      self.len -= 1;
 
-        if self.len > 0 {
-          self.head = get_circular_idx!(self.head, 1, self.capacity);
-        }
-
-        Some(result)
+      if self.len > 0 {
+        self.head = get_circular_idx!(self.head, 1, self.capacity);
       }
+
+      Some(result)
     }
   }
 
@@ -220,16 +225,18 @@ impl<T> Queue<T> for CircularQueue<T> {
     } else if idx == 0 {
       self.pop()
     } else {
-      unsafe {
-        let removed_ptr = self
+      let removed_ptr = unsafe {
+        self
           .inner
-          .add(get_circular_idx!(self.head, idx, self.capacity));
+          .add(get_circular_idx!(self.head, idx, self.capacity))
+      };
 
-        let removed_item = removed_ptr.read();
+      let removed_item = unsafe { removed_ptr.read() };
 
-        // Shift head to idx
-        if idx <= (self.len / 2) {
-          for i in (1..=idx).rev() {
+      // Shift head to idx
+      if idx <= (self.len / 2) {
+        for i in (1..=idx).rev() {
+          unsafe {
             let src = self
               .inner
               .add(get_circular_idx!(self.head, i - 1, self.capacity));
@@ -240,12 +247,14 @@ impl<T> Queue<T> for CircularQueue<T> {
 
             src.copy_to_nonoverlapping(dst, 1);
           }
-
-          self.head = (self.head + 1) % self.capacity;
         }
-        // Shift tail to idx
-        else {
-          for i in idx..(self.len - 1) {
+
+        self.head = (self.head + 1) % self.capacity;
+      }
+      // Shift tail to idx
+      else {
+        for i in idx..(self.len - 1) {
+          unsafe {
             let src = self
               .inner
               .add(get_circular_idx!(self.head, i + 1, self.capacity));
@@ -257,10 +266,10 @@ impl<T> Queue<T> for CircularQueue<T> {
             src.copy_to_nonoverlapping(dst, 1);
           }
         }
-
-        self.len -= 1;
-        Some(removed_item)
       }
+
+      self.len -= 1;
+      Some(removed_item)
     }
   }
 
@@ -280,12 +289,10 @@ impl<T> Iterator for CircularQueueIntoIter<T> {
     if self.queue.len < 1 || self.counter >= self.queue.len {
       None
     } else {
-      unsafe {
-        let offset = get_circular_idx!(self.queue.head, self.counter, self.queue.capacity) as isize;
-        let item = Some(self.queue.inner.offset(offset).read());
-        self.counter += 1;
-        item
-      }
+      let offset = get_circular_idx!(self.queue.head, self.counter, self.queue.capacity) as isize;
+      let item = unsafe { Some(self.queue.inner.offset(offset).read()) };
+      self.counter += 1;
+      item
     }
   }
 }
@@ -297,12 +304,10 @@ impl<'a, T> Iterator for CircularQueueIter<'a, T> {
     if self.queue.len < 1 || self.counter >= self.queue.len {
       None
     } else {
-      unsafe {
-        let offset = get_circular_idx!(self.queue.head, self.counter, self.queue.capacity) as isize;
-        let item = Some(&*self.queue.inner.offset(offset));
-        self.counter += 1;
-        item
-      }
+      let offset = get_circular_idx!(self.queue.head, self.counter, self.queue.capacity) as isize;
+      let item = unsafe { Some(&*self.queue.inner.offset(offset)) };
+      self.counter += 1;
+      item
     }
   }
 }
@@ -314,12 +319,10 @@ impl<'a, T> Iterator for CircularQueueMutIter<'a, T> {
     if self.queue.len < 1 || self.counter >= self.queue.len {
       None
     } else {
-      unsafe {
-        let offset = get_circular_idx!(self.queue.head, self.counter, self.queue.capacity) as isize;
-        let item = Some(&mut *self.queue.inner.offset(offset));
-        self.counter += 1;
-        item
-      }
+      let offset = get_circular_idx!(self.queue.head, self.counter, self.queue.capacity) as isize;
+      let item = unsafe { Some(&mut *self.queue.inner.offset(offset)) };
+      self.counter += 1;
+      item
     }
   }
 }
@@ -361,15 +364,15 @@ impl<T> FromIterator<T> for CircularQueue<T> {
 
 impl<T> Drop for CircularQueue<T> {
   fn drop(&mut self) {
-    unsafe {
-      let layout = Layout::array::<T>(self.capacity).expect("Ring queue dealloc layout failed.");
+    let layout = Layout::array::<T>(self.capacity).expect("Ring queue dealloc layout failed.");
 
-      for offset in (0..self.len).map(|e| get_circular_idx!(self.head, e, self.capacity) as isize) {
+    for offset in (0..self.len).map(|e| get_circular_idx!(self.head, e, self.capacity) as isize) {
+      unsafe {
         let item_ptr = self.inner.offset(offset);
         ptr::drop_in_place(item_ptr);
       }
-
-      dealloc(self.inner as *mut u8, layout);
     }
+
+    unsafe { dealloc(self.inner as *mut u8, layout) };
   }
 }
