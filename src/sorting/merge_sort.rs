@@ -21,16 +21,16 @@ where
   }
 }
 
-fn merge<T>(buf: &mut [T], split_offset: usize)
+fn merge<T>(buf: &mut [T], split: usize)
 where
   T: PartialOrd + Copy,
 {
-  let mut rhs_idx: usize = split_offset;
+  let mut rhs_idx: usize = split;
   let mut lhs_idx: usize = 0;
 
   // Not a perfect in-place merge but trying to reduce memory allocation by cloning the only
   // left-hand side to an auxillary buffer and swapping the right-hand side.
-  let lhs = Vec::from(&buf[0..split_offset]);
+  let lhs = Vec::from(&buf[0..split]);
 
   for idx in 0..buf.len() {
     let l = lhs.get(lhs_idx);

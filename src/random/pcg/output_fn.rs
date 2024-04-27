@@ -25,7 +25,7 @@ pub fn pcg_output_xsh_rr_16_8(state: u16) -> u8 {
 
 #[inline]
 pub fn pcg_output_xsh_rr_32_16(state: u32) -> u16 {
-  u16::rotate_right((((state >> 10) ^ state) >> 12) as u16, (state >> 28) as u32)
+  u16::rotate_right((((state >> 10) ^ state) >> 12) as u16, state >> 28)
 }
 
 #[inline]

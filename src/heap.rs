@@ -87,7 +87,7 @@ where
 // It may look similar to min/max_heapify but it's gurantees
 // the max/min value is the last element.
 
-pub fn reverse_max_heapify<T>(input: &mut [T])
+pub fn max_heapify_rev<T>(input: &mut [T])
 where
   T: PartialOrd,
 {
@@ -119,12 +119,12 @@ where
 
     if largest != p_idx {
       input.swap(p_idx, largest);
-      reverse_max_heapify(&mut input[..=largest]);
+      max_heapify_rev(&mut input[..=largest]);
     }
   }
 }
 
-pub fn reverse_min_heapify<T>(input: &mut [T])
+pub fn min_heapify_rev<T>(input: &mut [T])
 where
   T: PartialOrd,
 {
@@ -156,7 +156,7 @@ where
 
     if smallest != p_idx {
       input.swap(p_idx, smallest);
-      reverse_min_heapify(&mut input[..=smallest]);
+      min_heapify_rev(&mut input[..=smallest]);
     }
   }
 }

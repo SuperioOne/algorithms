@@ -59,7 +59,7 @@ impl<TIn, TOut> McgXshRs<TIn, TOut> {
   pub fn new(seed: TIn) -> Self {
     Self {
       seed,
-      _p_out: PhantomData::default(),
+      _p_out: PhantomData,
     }
   }
 
@@ -77,7 +77,7 @@ impl<TIn, TOut> McgXshRr<TIn, TOut> {
   pub fn new(seed: TIn) -> Self {
     Self {
       seed,
-      _p_out: PhantomData::default(),
+      _p_out: PhantomData,
     }
   }
 
@@ -95,7 +95,7 @@ impl<TIn, TOut> OneSeqXshRr<TIn, TOut> {
   pub fn new(seed: TIn) -> Self {
     Self {
       seed,
-      _p_out: PhantomData::default(),
+      _p_out: PhantomData,
     }
   }
 
@@ -113,7 +113,7 @@ impl<TIn, TOut> OneSeqXshRs<TIn, TOut> {
   pub fn new(seed: TIn) -> Self {
     Self {
       seed,
-      _p_out: PhantomData::default(),
+      _p_out: PhantomData,
     }
   }
 
@@ -131,7 +131,7 @@ impl<TIn, TOut> OneSeqRxsMXs<TIn, TOut> {
   pub fn new(seed: TIn) -> Self {
     Self {
       seed,
-      _p_out: PhantomData::default(),
+      _p_out: PhantomData,
     }
   }
 
@@ -149,7 +149,7 @@ impl<TIn, TOut> OneSeqXslRr<TIn, TOut> {
   pub fn new(seed: TIn) -> Self {
     Self {
       seed,
-      _p_out: PhantomData::default(),
+      _p_out: PhantomData,
     }
   }
 
@@ -167,7 +167,7 @@ impl<TIn, TOut> McgXslRr<TIn, TOut> {
   pub fn new(seed: TIn) -> Self {
     Self {
       seed,
-      _p_out: PhantomData::default(),
+      _p_out: PhantomData,
     }
   }
 

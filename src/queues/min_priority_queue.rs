@@ -1,5 +1,6 @@
-use super::PriorityQueue;
-use crate::heap::reverse_min_heapify;
+use super::errors::QueueError;
+use super::Queue;
+use crate::heap::min_heapify_rev;
 use std::slice::Iter;
 
 #[derive(Debug)]
@@ -34,7 +35,7 @@ where
 {
   fn from_iter<A: IntoIterator<Item = T>>(iter: A) -> Self {
     let mut vec: Vec<T> = Vec::from_iter(iter);
-    reverse_min_heapify(&mut vec);
+    min_heapify_rev(&mut vec);
     Self { inner_buf: vec }
   }
 }
@@ -71,29 +72,19 @@ where
   }
 }
 
-impl<T> PriorityQueue<T> for MinPriorityQueue<T>
+impl<T> Queue<T> for MinPriorityQueue<T>
 where
   T: PartialOrd,
 {
-  fn push(&mut self, value: T) {
+  fn push(&mut self, value: T) -> Result<(), QueueError> {
     let rebalance = self.inner_buf.last().is_some_and(|v| v.lt(&value));
     self.inner_buf.push(value);
 
     if rebalance {
-      reverse_min_heapify(&mut self.inner_buf);
+      min_heapify_rev(&mut self.inner_buf);
     }
-  }
 
-  fn replace(&mut self, old_idx: usize, new: T) -> bool {
-    match self.inner_buf.get_mut(old_idx) {
-      Some(val) => {
-        *val = new;
-        reverse_min_heapify(&mut self.inner_buf);
-        true
-      }
-
-      None => false,
-    }
+    Ok(())
   }
 
   fn pop(&mut self) -> Option<T> {
@@ -104,7 +95,7 @@ where
           let r_child: &T = self.inner_buf.get(self.inner_buf.len() - 2).unwrap();
 
           if l_child.gt(r_child) {
-            reverse_min_heapify(&mut self.inner_buf);
+            min_heapify_rev(&mut self.inner_buf);
           }
         }
 
@@ -118,37 +109,15 @@ where
     self.inner_buf.last()
   }
 
-  fn delete<F>(&mut self, predicate: F) -> bool
-  where
-    F: Fn(&T) -> bool,
-  {
-    if self.inner_buf.is_empty() {
-      return false;
+  fn remove(&mut self, idx: usize) -> Option<T> {
+    if self.inner_buf.is_empty() || idx >= self.inner_buf.len() {
+      None
+    } else {
+      let item = self.inner_buf.remove(idx);
+      min_heapify_rev(&mut self.inner_buf);
+
+      Some(item)
     }
-
-    for (idx, val) in self.inner_buf.iter().enumerate() {
-      if predicate(val) {
-        self.inner_buf.remove(idx);
-        reverse_min_heapify(&mut self.inner_buf);
-
-        return true;
-      }
-    }
-
-    false
-  }
-
-  fn find<F>(&self, predicate: F) -> Option<(usize, &T)>
-  where
-    F: Fn(&T) -> bool,
-  {
-    for (idx, value) in self.inner_buf.iter().enumerate() {
-      if predicate(value) {
-        return Some((idx, value));
-      }
-    }
-
-    None
   }
 
   fn is_empty(&self) -> bool {
