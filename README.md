@@ -8,3 +8,4 @@ Rust's standard library. So, use this code at your own risk!
 
 - [ Introduction to Algorithms ](https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/)
 - [ The PCG Paper ](https://www.pcg-random.org/paper.html)
+- [ Fast Hashing of Variable-Length Text Strings ](https://web.archive.org/web/20120704025921/http://cs.mwsu.edu/~griffin/courses/2133/downloads/Spring11/p677-pearson.pdf)
