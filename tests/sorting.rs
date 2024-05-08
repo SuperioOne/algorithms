@@ -206,7 +206,7 @@ mod heap_sort {
 }
 
 mod quick_sort {
-  use algorithms::random::pcg::PcgUsize;
+  use algorithms::random::pcg::Pcg_Usize;
 
   use crate::TestStruct;
 
@@ -220,7 +220,7 @@ mod quick_sort {
   #[test]
   fn sort_numbers_randomized() {
     let (sorted, mut input) = test_array_i32!();
-    let mut generator: PcgUsize = PcgUsize::new(13);
+    let mut generator: Pcg_Usize = Pcg_Usize::new(13);
     algorithms::sorting::quick_sort::sort_randomized(&mut input, &mut generator);
     assert_eq!(sorted, input)
   }

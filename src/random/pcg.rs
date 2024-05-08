@@ -1,4 +1,7 @@
-use std::marker::PhantomData;
+#![allow(non_camel_case_types)]
+
+mod output_fn;
+mod step_fn;
 
 use crate::random::pcg::output_fn::pcg_output_xsh_rr_16_8;
 use crate::random::pcg::step_fn::pcg_mcg_16_step_r;
@@ -17,394 +20,301 @@ use self::step_fn::{
 
 use super::NumberGenerator;
 
-mod output_fn;
-mod step_fn;
+// MCG XSH RR
 
-pub struct McgXshRs<TIn, TOut> {
-  seed: TIn,
-  _p_out: PhantomData<TOut>,
+pub struct Pcg_Mcg_16_XSH_RR_8 {
+  state: u16,
 }
 
-pub struct McgXshRr<TIn, TOut> {
-  seed: TIn,
-  _p_out: PhantomData<TOut>,
-}
-
-pub struct OneSeqXshRs<TIn, TOut> {
-  seed: TIn,
-  _p_out: PhantomData<TOut>,
-}
-
-pub struct OneSeqXshRr<TIn, TOut> {
-  seed: TIn,
-  _p_out: PhantomData<TOut>,
-}
-
-pub struct OneSeqRxsMXs<TIn, TOut> {
-  seed: TIn,
-  _p_out: PhantomData<TOut>,
-}
-
-pub struct OneSeqXslRr<TIn, TOut> {
-  seed: TIn,
-  _p_out: PhantomData<TOut>,
-}
-
-pub struct McgXslRr<TIn, TOut> {
-  seed: TIn,
-  _p_out: PhantomData<TOut>,
-}
-
-pub struct PcgUsizeWrapper {
-  #[cfg(target_pointer_width = "64")]
-  inner: Pcg64RxsMXs64,
-
-  #[cfg(target_pointer_width = "32")]
-  inner: Pcg64RxsMXs6,
-}
-
-impl<TIn, TOut> McgXshRs<TIn, TOut> {
-  pub fn new(seed: TIn) -> Self {
-    Self {
-      seed,
-      _p_out: PhantomData::default(),
-    }
+impl Pcg_Mcg_16_XSH_RR_8 {
+  pub fn new(seed: u16) -> Self {
+    Self { state: seed }
   }
-
-  pub fn reset_seed(&mut self, new_seed: TIn) -> &mut Self {
-    self.seed = new_seed;
+  pub fn reset_seed(&mut self, new_seed: u16) -> &mut Self {
+    self.state = new_seed;
     self
   }
-
-  pub fn get_seed(&self) -> &TIn {
-    &self.seed
+  pub fn get_seed(&self) -> u16 {
+    self.state
   }
 }
 
-impl<TIn, TOut> McgXshRr<TIn, TOut> {
-  pub fn new(seed: TIn) -> Self {
-    Self {
-      seed,
-      _p_out: PhantomData,
-    }
-  }
-
-  pub fn reset_seed(&mut self, new_seed: TIn) -> &mut Self {
-    self.seed = new_seed;
-    self
-  }
-
-  pub fn get_seed(&self) -> &TIn {
-    &self.seed
-  }
-}
-
-impl<TIn, TOut> OneSeqXshRr<TIn, TOut> {
-  pub fn new(seed: TIn) -> Self {
-    Self {
-      seed,
-      _p_out: PhantomData,
-    }
-  }
-
-  pub fn reset_seed(&mut self, new_seed: TIn) -> &mut Self {
-    self.seed = new_seed;
-    self
-  }
-
-  pub fn get_seed(&self) -> &TIn {
-    &self.seed
-  }
-}
-
-impl<TIn, TOut> OneSeqXshRs<TIn, TOut> {
-  pub fn new(seed: TIn) -> Self {
-    Self {
-      seed,
-      _p_out: PhantomData,
-    }
-  }
-
-  pub fn reset_seed(&mut self, new_seed: TIn) -> &mut Self {
-    self.seed = new_seed;
-    self
-  }
-
-  pub fn get_seed(&self) -> &TIn {
-    &self.seed
-  }
-}
-
-impl<TIn, TOut> OneSeqRxsMXs<TIn, TOut> {
-  pub fn new(seed: TIn) -> Self {
-    Self {
-      seed,
-      _p_out: PhantomData,
-    }
-  }
-
-  pub fn reset_seed(&mut self, new_seed: TIn) -> &mut Self {
-    self.seed = new_seed;
-    self
-  }
-
-  pub fn get_seed(&self) -> &TIn {
-    &self.seed
-  }
-}
-
-impl<TIn, TOut> OneSeqXslRr<TIn, TOut> {
-  pub fn new(seed: TIn) -> Self {
-    Self {
-      seed,
-      _p_out: PhantomData,
-    }
-  }
-
-  pub fn reset_seed(&mut self, new_seed: TIn) -> &mut Self {
-    self.seed = new_seed;
-    self
-  }
-
-  pub fn get_seed(&self) -> &TIn {
-    &self.seed
-  }
-}
-
-impl<TIn, TOut> McgXslRr<TIn, TOut> {
-  pub fn new(seed: TIn) -> Self {
-    Self {
-      seed,
-      _p_out: PhantomData,
-    }
-  }
-
-  pub fn reset_seed(&mut self, new_seed: TIn) -> &mut Self {
-    self.seed = new_seed;
-    self
-  }
-
-  pub fn get_seed(&self) -> &TIn {
-    &self.seed
-  }
-}
-
-impl PcgUsizeWrapper {
-  pub fn new(seed: usize) -> Self {
-    #[cfg(target_pointer_width = "64")]
-    {
-      Self {
-        inner: Pcg64RxsMXs64::new(seed as u64),
-      }
-    }
-
-    #[cfg(target_pointer_width = "32")]
-    {
-      Self {
-        inner: Pcg64RxsMXs32::new(seed as u32),
-      }
-    }
-  }
-
-  pub fn reset_seed(&mut self, new_seed: usize) -> &mut Self {
-    #[cfg(target_pointer_width = "64")]
-    self.inner.reset_seed(new_seed as u64);
-
-    #[cfg(target_pointer_width = "32")]
-    self.inner.reset_seed(new_seed as u32);
-
-    self
-  }
-
-  pub fn get_seed(&self) -> usize {
-    self.inner.seed as usize
-  }
-}
-
-// Default traits
-
-impl<TIn, TOut> Default for OneSeqXshRs<TIn, TOut>
-where
-  TIn: Default,
-{
+impl Default for Pcg_Mcg_16_XSH_RR_8 {
   fn default() -> Self {
-    Self::new(TIn::default())
+    Self::new(<u16>::default())
   }
 }
 
-impl<TIn, TOut> Default for OneSeqXshRr<TIn, TOut>
-where
-  TIn: Default,
-{
-  fn default() -> Self {
-    Self::new(TIn::default())
-  }
-}
-
-impl<TIn, TOut> Default for McgXshRs<TIn, TOut>
-where
-  TIn: Default,
-{
-  fn default() -> Self {
-    Self::new(TIn::default())
-  }
-}
-
-impl<TIn, TOut> Default for McgXshRr<TIn, TOut>
-where
-  TIn: Default,
-{
-  fn default() -> Self {
-    Self::new(TIn::default())
-  }
-}
-
-impl<TIn, TOut> Default for OneSeqRxsMXs<TIn, TOut>
-where
-  TIn: Default,
-{
-  fn default() -> Self {
-    Self::new(TIn::default())
-  }
-}
-
-impl<TIn, TOut> Default for OneSeqXslRr<TIn, TOut>
-where
-  TIn: Default,
-{
-  fn default() -> Self {
-    Self::new(TIn::default())
-  }
-}
-
-impl<TIn, TOut> Default for McgXslRr<TIn, TOut>
-where
-  TIn: Default,
-{
-  fn default() -> Self {
-    Self::new(TIn::default())
-  }
-}
-
-// MCG XHS RR Impls
-
-impl NumberGenerator<u8> for McgXshRr<u16, u8> {
+impl NumberGenerator<u8> for Pcg_Mcg_16_XSH_RR_8 {
   fn get_next(&mut self) -> u8 {
-    self.seed = pcg_mcg_16_step_r(self.seed);
-    pcg_output_xsh_rr_16_8(self.seed)
+    self.state = pcg_mcg_16_step_r(self.state);
+    pcg_output_xsh_rr_16_8(self.state)
   }
 }
 
-impl Iterator for McgXshRr<u16, u8> {
+impl Iterator for Pcg_Mcg_16_XSH_RR_8 {
   type Item = u8;
-
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
 }
 
-impl NumberGenerator<u16> for McgXshRr<u32, u16> {
+pub struct Pcg_Mcg_32_XSH_RR_16 {
+  state: u32,
+}
+
+impl Pcg_Mcg_32_XSH_RR_16 {
+  pub fn new(seed: u32) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u32) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u32 {
+    self.state
+  }
+}
+
+impl Default for Pcg_Mcg_32_XSH_RR_16 {
+  fn default() -> Self {
+    Self::new(<u32>::default())
+  }
+}
+
+impl NumberGenerator<u16> for Pcg_Mcg_32_XSH_RR_16 {
   fn get_next(&mut self) -> u16 {
-    self.seed = pcg_mcg_32_step_r(self.seed);
-    pcg_output_xsh_rr_32_16(self.seed)
+    self.state = pcg_mcg_32_step_r(self.state);
+    pcg_output_xsh_rr_32_16(self.state)
   }
 }
 
-impl Iterator for McgXshRr<u32, u16> {
+impl Iterator for Pcg_Mcg_32_XSH_RR_16 {
   type Item = u16;
-
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
 }
 
-impl NumberGenerator<u32> for McgXshRr<u64, u32> {
+pub struct Pcg_Mcg_64_XSH_RR_32 {
+  state: u64,
+}
+
+impl Pcg_Mcg_64_XSH_RR_32 {
+  pub fn new(seed: u64) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u64) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u64 {
+    self.state
+  }
+}
+
+impl Default for Pcg_Mcg_64_XSH_RR_32 {
+  fn default() -> Self {
+    Self::new(<u64>::default())
+  }
+}
+
+impl NumberGenerator<u32> for Pcg_Mcg_64_XSH_RR_32 {
   fn get_next(&mut self) -> u32 {
-    self.seed = pcg_mcg_64_step_r(self.seed);
-    pcg_output_xsh_rr_64_32(self.seed)
+    self.state = pcg_mcg_64_step_r(self.state);
+    pcg_output_xsh_rr_64_32(self.state)
   }
 }
 
-impl Iterator for McgXshRr<u64, u32> {
+impl Iterator for Pcg_Mcg_64_XSH_RR_32 {
   type Item = u32;
-
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
 }
 
-impl NumberGenerator<u64> for McgXshRr<u128, u64> {
+pub struct Pcg_Mcg_128_XSH_RR_64 {
+  state: u128,
+}
+
+impl Pcg_Mcg_128_XSH_RR_64 {
+  pub fn new(seed: u128) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u128) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u128 {
+    self.state
+  }
+}
+
+impl Default for Pcg_Mcg_128_XSH_RR_64 {
+  fn default() -> Self {
+    Self::new(<u128>::default())
+  }
+}
+
+impl NumberGenerator<u64> for Pcg_Mcg_128_XSH_RR_64 {
   fn get_next(&mut self) -> u64 {
-    self.seed = pcg_mcg_128_step_r(self.seed);
-    pcg_output_xsh_rr_128_64(self.seed)
+    self.state = pcg_mcg_128_step_r(self.state);
+    pcg_output_xsh_rr_128_64(self.state)
   }
 }
 
-impl Iterator for McgXshRr<u128, u64> {
+impl Iterator for Pcg_Mcg_128_XSH_RR_64 {
   type Item = u64;
-
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
 }
 
-// MCG XHS RS Impls
+// MCG XSH RS
 
-impl NumberGenerator<u8> for McgXshRs<u16, u8> {
+pub struct Pcg_Mcg_16_XSH_RS_8 {
+  state: u16,
+}
+
+impl Pcg_Mcg_16_XSH_RS_8 {
+  pub fn new(seed: u16) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u16) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u16 {
+    self.state
+  }
+}
+
+impl Default for Pcg_Mcg_16_XSH_RS_8 {
+  fn default() -> Self {
+    Self::new(<u16>::default())
+  }
+}
+
+impl NumberGenerator<u8> for Pcg_Mcg_16_XSH_RS_8 {
   fn get_next(&mut self) -> u8 {
-    self.seed = pcg_mcg_16_step_r(self.seed);
-    pcg_output_xsh_rs_16_8(self.seed)
+    self.state = pcg_mcg_16_step_r(self.state);
+    pcg_output_xsh_rs_16_8(self.state)
   }
 }
 
-impl Iterator for McgXshRs<u16, u8> {
+impl Iterator for Pcg_Mcg_16_XSH_RS_8 {
   type Item = u8;
-
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
 }
 
-impl NumberGenerator<u16> for McgXshRs<u32, u16> {
+pub struct Pcg_Mcg_32_XSH_RS_16 {
+  state: u32,
+}
+
+impl Pcg_Mcg_32_XSH_RS_16 {
+  pub fn new(seed: u32) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u32) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u32 {
+    self.state
+  }
+}
+
+impl Default for Pcg_Mcg_32_XSH_RS_16 {
+  fn default() -> Self {
+    Self::new(<u32>::default())
+  }
+}
+
+impl NumberGenerator<u16> for Pcg_Mcg_32_XSH_RS_16 {
   fn get_next(&mut self) -> u16 {
-    self.seed = pcg_mcg_32_step_r(self.seed);
-    pcg_output_xsh_rs_32_16(self.seed)
+    self.state = pcg_mcg_32_step_r(self.state);
+    pcg_output_xsh_rs_32_16(self.state)
   }
 }
 
-impl Iterator for McgXshRs<u32, u16> {
+impl Iterator for Pcg_Mcg_32_XSH_RS_16 {
   type Item = u16;
-
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
 }
 
-impl NumberGenerator<u32> for McgXshRs<u64, u32> {
+pub struct Pcg_Mcg_64_XSH_RS_32 {
+  state: u64,
+}
+
+impl Pcg_Mcg_64_XSH_RS_32 {
+  pub fn new(seed: u64) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u64) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u64 {
+    self.state
+  }
+}
+
+impl Default for Pcg_Mcg_64_XSH_RS_32 {
+  fn default() -> Self {
+    Self::new(<u64>::default())
+  }
+}
+
+impl NumberGenerator<u32> for Pcg_Mcg_64_XSH_RS_32 {
   fn get_next(&mut self) -> u32 {
-    self.seed = pcg_mcg_64_step_r(self.seed);
-    pcg_output_xsh_rs_64_32(self.seed)
+    self.state = pcg_mcg_64_step_r(self.state);
+    pcg_output_xsh_rs_64_32(self.state)
   }
 }
 
-impl Iterator for McgXshRs<u64, u32> {
+impl Iterator for Pcg_Mcg_64_XSH_RS_32 {
   type Item = u32;
-
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
 }
 
-impl NumberGenerator<u64> for McgXshRs<u128, u64> {
-  fn get_next(&mut self) -> u64 {
-    self.seed = pcg_mcg_128_step_r(self.seed);
-    pcg_output_xsh_rs_128_64(self.seed)
+pub struct Pcg_Mcg_128_XSH_RS_64 {
+  state: u128,
+}
+
+impl Pcg_Mcg_128_XSH_RS_64 {
+  pub fn new(seed: u128) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u128) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u128 {
+    self.state
   }
 }
 
-impl Iterator for McgXshRs<u128, u64> {
-  type Item = u64;
+impl Default for Pcg_Mcg_128_XSH_RS_64 {
+  fn default() -> Self {
+    Self::new(<u128>::default())
+  }
+}
 
+impl NumberGenerator<u64> for Pcg_Mcg_128_XSH_RS_64 {
+  fn get_next(&mut self) -> u64 {
+    self.state = pcg_mcg_128_step_r(self.state);
+    pcg_output_xsh_rs_128_64(self.state)
+  }
+}
+
+impl Iterator for Pcg_Mcg_128_XSH_RS_64 {
+  type Item = u64;
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
@@ -412,123 +322,299 @@ impl Iterator for McgXshRs<u128, u64> {
 
 // ONESEQ XHS RR Impls
 
-impl NumberGenerator<u8> for OneSeqXshRr<u16, u8> {
+pub struct Pcg_OneSeq_16_XSH_RR_8 {
+  state: u16,
+}
+
+impl Pcg_OneSeq_16_XSH_RR_8 {
+  pub fn new(seed: u16) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u16) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u16 {
+    self.state
+  }
+}
+
+impl Default for Pcg_OneSeq_16_XSH_RR_8 {
+  fn default() -> Self {
+    Self::new(<u16>::default())
+  }
+}
+
+impl NumberGenerator<u8> for Pcg_OneSeq_16_XSH_RR_8 {
   fn get_next(&mut self) -> u8 {
-    self.seed = pcg_oneseq_16_step_r(self.seed);
-    pcg_output_xsh_rr_16_8(self.seed)
+    self.state = pcg_oneseq_16_step_r(self.state);
+    pcg_output_xsh_rr_16_8(self.state)
   }
 }
 
-impl Iterator for OneSeqXshRr<u16, u8> {
+impl Iterator for Pcg_OneSeq_16_XSH_RR_8 {
   type Item = u8;
-
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
 }
 
-impl NumberGenerator<u16> for OneSeqXshRr<u32, u16> {
+pub struct Pcg_OneSeq_32_XSH_RR_16 {
+  state: u32,
+}
+
+impl Pcg_OneSeq_32_XSH_RR_16 {
+  pub fn new(seed: u32) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u32) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u32 {
+    self.state
+  }
+}
+
+impl Default for Pcg_OneSeq_32_XSH_RR_16 {
+  fn default() -> Self {
+    Self::new(<u32>::default())
+  }
+}
+
+impl NumberGenerator<u16> for Pcg_OneSeq_32_XSH_RR_16 {
   fn get_next(&mut self) -> u16 {
-    self.seed = pcg_oneseq_32_step_r(self.seed);
-    pcg_output_xsh_rr_32_16(self.seed)
+    self.state = pcg_oneseq_32_step_r(self.state);
+    pcg_output_xsh_rr_32_16(self.state)
   }
 }
 
-impl Iterator for OneSeqXshRr<u32, u16> {
+impl Iterator for Pcg_OneSeq_32_XSH_RR_16 {
   type Item = u16;
-
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
 }
 
-impl NumberGenerator<u32> for OneSeqXshRr<u64, u32> {
+pub struct Pcg_OneSeq_64_XSH_RR_32 {
+  state: u64,
+}
+
+impl Pcg_OneSeq_64_XSH_RR_32 {
+  pub fn new(seed: u64) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u64) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u64 {
+    self.state
+  }
+}
+
+impl Default for Pcg_OneSeq_64_XSH_RR_32 {
+  fn default() -> Self {
+    Self::new(<u64>::default())
+  }
+}
+
+impl NumberGenerator<u32> for Pcg_OneSeq_64_XSH_RR_32 {
   fn get_next(&mut self) -> u32 {
-    self.seed = pcg_oneseq_64_step_r(self.seed);
-    pcg_output_xsh_rr_64_32(self.seed)
+    self.state = pcg_oneseq_64_step_r(self.state);
+    pcg_output_xsh_rr_64_32(self.state)
   }
 }
 
-impl Iterator for OneSeqXshRr<u64, u32> {
+impl Iterator for Pcg_OneSeq_64_XSH_RR_32 {
   type Item = u32;
-
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
 }
 
-impl NumberGenerator<u64> for OneSeqXshRr<u128, u64> {
+pub struct Pcg_OneSeq_128_XSH_RR_64 {
+  state: u128,
+}
+
+impl Pcg_OneSeq_128_XSH_RR_64 {
+  pub fn new(seed: u128) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u128) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u128 {
+    self.state
+  }
+}
+
+impl Default for Pcg_OneSeq_128_XSH_RR_64 {
+  fn default() -> Self {
+    Self::new(<u128>::default())
+  }
+}
+
+impl NumberGenerator<u64> for Pcg_OneSeq_128_XSH_RR_64 {
   fn get_next(&mut self) -> u64 {
-    self.seed = pcg_oneseq_128_step_r(self.seed);
-    pcg_output_xsh_rr_128_64(self.seed)
+    self.state = pcg_oneseq_128_step_r(self.state);
+    pcg_output_xsh_rr_128_64(self.state)
   }
 }
 
-impl Iterator for OneSeqXshRr<u128, u64> {
+impl Iterator for Pcg_OneSeq_128_XSH_RR_64 {
   type Item = u64;
-
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
 }
 
-// ONESEQ XHS RS Impls
+// ONESEQ XSH RS
 
-impl NumberGenerator<u8> for OneSeqXshRs<u16, u8> {
+pub struct Pcg_OneSeq_16_XSH_RS_8 {
+  state: u16,
+}
+
+impl Pcg_OneSeq_16_XSH_RS_8 {
+  pub fn new(seed: u16) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u16) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u16 {
+    self.state
+  }
+}
+
+impl Default for Pcg_OneSeq_16_XSH_RS_8 {
+  fn default() -> Self {
+    Self::new(<u16>::default())
+  }
+}
+
+impl NumberGenerator<u8> for Pcg_OneSeq_16_XSH_RS_8 {
   fn get_next(&mut self) -> u8 {
-    self.seed = pcg_oneseq_16_step_r(self.seed);
-    pcg_output_xsh_rs_16_8(self.seed)
+    self.state = pcg_oneseq_16_step_r(self.state);
+    pcg_output_xsh_rs_16_8(self.state)
   }
 }
 
-impl Iterator for OneSeqXshRs<u16, u8> {
+impl Iterator for Pcg_OneSeq_16_XSH_RS_8 {
   type Item = u8;
-
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
 }
 
-impl NumberGenerator<u16> for OneSeqXshRs<u32, u16> {
+pub struct Pcg_OneSeq_32_XSH_RS_16 {
+  state: u32,
+}
+
+impl Pcg_OneSeq_32_XSH_RS_16 {
+  pub fn new(seed: u32) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u32) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u32 {
+    self.state
+  }
+}
+
+impl Default for Pcg_OneSeq_32_XSH_RS_16 {
+  fn default() -> Self {
+    Self::new(<u32>::default())
+  }
+}
+
+impl NumberGenerator<u16> for Pcg_OneSeq_32_XSH_RS_16 {
   fn get_next(&mut self) -> u16 {
-    self.seed = pcg_oneseq_32_step_r(self.seed);
-    pcg_output_xsh_rs_32_16(self.seed)
+    self.state = pcg_oneseq_32_step_r(self.state);
+    pcg_output_xsh_rs_32_16(self.state)
   }
 }
 
-impl Iterator for OneSeqXshRs<u32, u16> {
+impl Iterator for Pcg_OneSeq_32_XSH_RS_16 {
   type Item = u16;
-
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
 }
 
-impl NumberGenerator<u32> for OneSeqXshRs<u64, u32> {
+pub struct Pcg_OneSeq_64_XSH_RS_32 {
+  state: u64,
+}
+
+impl Pcg_OneSeq_64_XSH_RS_32 {
+  pub fn new(seed: u64) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u64) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u64 {
+    self.state
+  }
+}
+
+impl Default for Pcg_OneSeq_64_XSH_RS_32 {
+  fn default() -> Self {
+    Self::new(<u64>::default())
+  }
+}
+
+impl NumberGenerator<u32> for Pcg_OneSeq_64_XSH_RS_32 {
   fn get_next(&mut self) -> u32 {
-    self.seed = pcg_oneseq_64_step_r(self.seed);
-    pcg_output_xsh_rs_64_32(self.seed)
+    self.state = pcg_oneseq_64_step_r(self.state);
+    pcg_output_xsh_rs_64_32(self.state)
   }
 }
 
-impl Iterator for OneSeqXshRs<u64, u32> {
+impl Iterator for Pcg_OneSeq_64_XSH_RS_32 {
   type Item = u32;
-
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
 }
 
-impl NumberGenerator<u64> for OneSeqXshRs<u128, u64> {
-  fn get_next(&mut self) -> u64 {
-    self.seed = pcg_oneseq_128_step_r(self.seed);
-    pcg_output_xsh_rs_128_64(self.seed)
+pub struct Pcg_OneSeq_128_XSH_RS_64 {
+  state: u128,
+}
+
+impl Pcg_OneSeq_128_XSH_RS_64 {
+  pub fn new(seed: u128) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u128) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u128 {
+    self.state
   }
 }
 
-impl Iterator for OneSeqXshRs<u128, u64> {
-  type Item = u64;
+impl Default for Pcg_OneSeq_128_XSH_RS_64 {
+  fn default() -> Self {
+    Self::new(<u128>::default())
+  }
+}
 
+impl NumberGenerator<u64> for Pcg_OneSeq_128_XSH_RS_64 {
+  fn get_next(&mut self) -> u64 {
+    self.state = pcg_oneseq_128_step_r(self.state);
+    pcg_output_xsh_rs_128_64(self.state)
+  }
+}
+
+impl Iterator for Pcg_OneSeq_128_XSH_RS_64 {
+  type Item = u64;
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
@@ -536,76 +622,186 @@ impl Iterator for OneSeqXshRs<u128, u64> {
 
 // ONESEQ RXS M XS Impls
 
-impl NumberGenerator<u8> for OneSeqRxsMXs<u8, u8> {
+pub struct Pcg_OneSeq_8_RXS_M_XS_8 {
+  state: u8,
+}
+
+impl Pcg_OneSeq_8_RXS_M_XS_8 {
+  pub fn new(seed: u8) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u8) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u8 {
+    self.state
+  }
+}
+
+impl Default for Pcg_OneSeq_8_RXS_M_XS_8 {
+  fn default() -> Self {
+    Self::new(<u8>::default())
+  }
+}
+
+impl NumberGenerator<u8> for Pcg_OneSeq_8_RXS_M_XS_8 {
   fn get_next(&mut self) -> u8 {
-    self.seed = pcg_oneseq_8_step_r(self.seed);
-    pcg_output_rxs_m_xs_8_8(self.seed)
+    self.state = pcg_oneseq_8_step_r(self.state);
+    pcg_output_rxs_m_xs_8_8(self.state)
   }
 }
 
-impl Iterator for OneSeqRxsMXs<u8, u8> {
+impl Iterator for Pcg_OneSeq_8_RXS_M_XS_8 {
   type Item = u8;
-
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
 }
 
-impl NumberGenerator<u16> for OneSeqRxsMXs<u16, u16> {
+pub struct Pcg_OneSeq_16_RXS_M_XS_16 {
+  state: u16,
+}
+
+impl Pcg_OneSeq_16_RXS_M_XS_16 {
+  pub fn new(seed: u16) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u16) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u16 {
+    self.state
+  }
+}
+
+impl Default for Pcg_OneSeq_16_RXS_M_XS_16 {
+  fn default() -> Self {
+    Self::new(<u16>::default())
+  }
+}
+
+impl NumberGenerator<u16> for Pcg_OneSeq_16_RXS_M_XS_16 {
   fn get_next(&mut self) -> u16 {
-    self.seed = pcg_oneseq_16_step_r(self.seed);
-    pcg_output_rxs_m_xs_16_16(self.seed)
+    self.state = pcg_oneseq_16_step_r(self.state);
+    pcg_output_rxs_m_xs_16_16(self.state)
   }
 }
 
-impl Iterator for OneSeqRxsMXs<u16, u16> {
+impl Iterator for Pcg_OneSeq_16_RXS_M_XS_16 {
   type Item = u16;
-
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
 }
 
-impl NumberGenerator<u32> for OneSeqRxsMXs<u32, u32> {
+pub struct Pcg_OneSeq_32_RXS_M_XS_32 {
+  state: u32,
+}
+
+impl Pcg_OneSeq_32_RXS_M_XS_32 {
+  pub fn new(seed: u32) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u32) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u32 {
+    self.state
+  }
+}
+
+impl Default for Pcg_OneSeq_32_RXS_M_XS_32 {
+  fn default() -> Self {
+    Self::new(<u32>::default())
+  }
+}
+
+impl NumberGenerator<u32> for Pcg_OneSeq_32_RXS_M_XS_32 {
   fn get_next(&mut self) -> u32 {
-    self.seed = pcg_oneseq_32_step_r(self.seed);
-    pcg_output_rxs_m_xs_32_32(self.seed)
+    self.state = pcg_oneseq_32_step_r(self.state);
+    pcg_output_rxs_m_xs_32_32(self.state)
   }
 }
 
-impl Iterator for OneSeqRxsMXs<u32, u32> {
+impl Iterator for Pcg_OneSeq_32_RXS_M_XS_32 {
   type Item = u32;
-
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
 }
 
-impl NumberGenerator<u64> for OneSeqRxsMXs<u64, u64> {
+pub struct Pcg_OneSeq_64_RXS_M_XS_64 {
+  state: u64,
+}
+
+impl Pcg_OneSeq_64_RXS_M_XS_64 {
+  pub fn new(seed: u64) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u64) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u64 {
+    self.state
+  }
+}
+
+impl Default for Pcg_OneSeq_64_RXS_M_XS_64 {
+  fn default() -> Self {
+    Self::new(<u64>::default())
+  }
+}
+
+impl NumberGenerator<u64> for Pcg_OneSeq_64_RXS_M_XS_64 {
   fn get_next(&mut self) -> u64 {
-    self.seed = pcg_oneseq_64_step_r(self.seed);
-    pcg_output_rxs_m_xs_64_64(self.seed)
+    self.state = pcg_oneseq_64_step_r(self.state);
+    pcg_output_rxs_m_xs_64_64(self.state)
   }
 }
 
-impl Iterator for OneSeqRxsMXs<u64, u64> {
+impl Iterator for Pcg_OneSeq_64_RXS_M_XS_64 {
   type Item = u64;
-
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
 }
 
-impl NumberGenerator<u128> for OneSeqRxsMXs<u128, u128> {
-  fn get_next(&mut self) -> u128 {
-    self.seed = pcg_oneseq_128_step_r(self.seed);
-    pcg_output_rxs_m_xs_128_128(self.seed)
+pub struct Pcg_OneSeq_128_RXS_M_XS_128 {
+  state: u128,
+}
+
+impl Pcg_OneSeq_128_RXS_M_XS_128 {
+  pub fn new(seed: u128) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u128) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u128 {
+    self.state
   }
 }
 
-impl Iterator for OneSeqRxsMXs<u128, u128> {
-  type Item = u128;
+impl Default for Pcg_OneSeq_128_RXS_M_XS_128 {
+  fn default() -> Self {
+    Self::new(<u128>::default())
+  }
+}
 
+impl NumberGenerator<u128> for Pcg_OneSeq_128_RXS_M_XS_128 {
+  fn get_next(&mut self) -> u128 {
+    self.state = pcg_oneseq_128_step_r(self.state);
+    pcg_output_rxs_m_xs_128_128(self.state)
+  }
+}
+
+impl Iterator for Pcg_OneSeq_128_RXS_M_XS_128 {
+  type Item = u128;
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
@@ -613,31 +809,75 @@ impl Iterator for OneSeqRxsMXs<u128, u128> {
 
 // ONESEQ XSL RR Impls
 
-impl NumberGenerator<u32> for OneSeqXslRr<u64, u32> {
-  fn get_next(&mut self) -> u32 {
-    self.seed = pcg_oneseq_64_step_r(self.seed);
-    pcg_output_xsl_rr_64_32(self.seed)
+pub struct Pcg_OneSeq_64_XSL_RR_32 {
+  state: u64,
+}
+
+impl Pcg_OneSeq_64_XSL_RR_32 {
+  pub fn new(seed: u64) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u64) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u64 {
+    self.state
   }
 }
 
-impl Iterator for OneSeqXslRr<u64, u32> {
-  type Item = u32;
+impl Default for Pcg_OneSeq_64_XSL_RR_32 {
+  fn default() -> Self {
+    Self::new(<u64>::default())
+  }
+}
 
+impl NumberGenerator<u32> for Pcg_OneSeq_64_XSL_RR_32 {
+  fn get_next(&mut self) -> u32 {
+    self.state = pcg_oneseq_64_step_r(self.state);
+    pcg_output_xsl_rr_64_32(self.state)
+  }
+}
+
+impl Iterator for Pcg_OneSeq_64_XSL_RR_32 {
+  type Item = u32;
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
 }
 
-impl NumberGenerator<u64> for OneSeqXslRr<u128, u64> {
-  fn get_next(&mut self) -> u64 {
-    self.seed = pcg_oneseq_128_step_r(self.seed);
-    pcg_output_xsl_rr_128_64(self.seed)
+pub struct Pcg_OneSeq_128_XSL_RR_64 {
+  state: u128,
+}
+
+impl Pcg_OneSeq_128_XSL_RR_64 {
+  pub fn new(seed: u128) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u128) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u128 {
+    self.state
   }
 }
 
-impl Iterator for OneSeqXslRr<u128, u64> {
-  type Item = u64;
+impl Default for Pcg_OneSeq_128_XSL_RR_64 {
+  fn default() -> Self {
+    Self::new(<u128>::default())
+  }
+}
 
+impl NumberGenerator<u64> for Pcg_OneSeq_128_XSL_RR_64 {
+  fn get_next(&mut self) -> u64 {
+    self.state = pcg_oneseq_128_step_r(self.state);
+    pcg_output_xsl_rr_128_64(self.state)
+  }
+}
+
+impl Iterator for Pcg_OneSeq_128_XSL_RR_64 {
+  type Item = u64;
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
@@ -645,45 +885,146 @@ impl Iterator for OneSeqXslRr<u128, u64> {
 
 // MCG XSL RR Impls
 
-impl NumberGenerator<u32> for McgXslRr<u64, u32> {
+pub struct Pcg_MCG_64_XSL_RR_32 {
+  state: u64,
+}
+
+impl Pcg_MCG_64_XSL_RR_32 {
+  pub fn new(seed: u64) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u64) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u64 {
+    self.state
+  }
+}
+
+impl Default for Pcg_MCG_64_XSL_RR_32 {
+  fn default() -> Self {
+    Self::new(<u64>::default())
+  }
+}
+
+impl NumberGenerator<u32> for Pcg_MCG_64_XSL_RR_32 {
   fn get_next(&mut self) -> u32 {
-    self.seed = pcg_mcg_64_step_r(self.seed);
-    pcg_output_xsl_rr_64_32(self.seed)
+    self.state = pcg_mcg_64_step_r(self.state);
+    pcg_output_xsl_rr_64_32(self.state)
   }
 }
 
-impl Iterator for McgXslRr<u64, u32> {
+impl Iterator for Pcg_MCG_64_XSL_RR_32 {
   type Item = u32;
-
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
 }
 
-impl NumberGenerator<u64> for McgXslRr<u128, u64> {
+pub struct Pcg_MCG_128_XSL_RR_64 {
+  state: u128,
+}
+
+impl Pcg_MCG_128_XSL_RR_64 {
+  pub fn new(seed: u128) -> Self {
+    Self { state: seed }
+  }
+  pub fn reset_seed(&mut self, new_seed: u128) -> &mut Self {
+    self.state = new_seed;
+    self
+  }
+  pub fn get_seed(&self) -> u128 {
+    self.state
+  }
+}
+
+impl Default for Pcg_MCG_128_XSL_RR_64 {
+  fn default() -> Self {
+    Self::new(<u128>::default())
+  }
+}
+
+impl NumberGenerator<u64> for Pcg_MCG_128_XSL_RR_64 {
   fn get_next(&mut self) -> u64 {
-    self.seed = pcg_mcg_128_step_r(self.seed);
-    pcg_output_xsl_rr_128_64(self.seed)
+    self.state = pcg_mcg_128_step_r(self.state);
+    pcg_output_xsl_rr_128_64(self.state)
   }
 }
 
-impl Iterator for McgXslRr<u128, u64> {
+impl Iterator for Pcg_MCG_128_XSL_RR_64 {
   type Item = u64;
-
   fn next(&mut self) -> Option<Self::Item> {
     Some(self.get_next())
   }
 }
 
-// Usize
+// Type Aliases
 
-impl NumberGenerator<usize> for PcgUsizeWrapper {
+#[cfg(target_pointer_width = "64")]
+pub struct Pcg_Usize {
+  inner: Pcg_64,
+}
+
+#[cfg(target_pointer_width = "64")]
+impl Pcg_Usize {
+  pub fn new(seed: u128) -> Self {
+    {
+      Self {
+        inner: Pcg_64::new(seed),
+      }
+    }
+  }
+
+  pub fn reset_seed(&mut self, new_seed: u128) -> &mut Self {
+    self.inner.state = new_seed;
+    self
+  }
+
+  pub fn get_seed(&self) -> u128 {
+    self.inner.state
+  }
+}
+
+#[cfg(target_pointer_width = "32")]
+pub struct Pcg_Usize {
+  inner: Pcg_32,
+}
+
+#[cfg(target_pointer_width = "32")]
+impl Pcg_Usize {
+  pub fn new(seed: u64) -> Self {
+    {
+      Self {
+        inner: Pcg_32::new(seed),
+      }
+    }
+  }
+
+  pub fn reset_seed(&mut self, new_seed: u64) -> &mut Self {
+    self.inner.state = new_seed;
+    self
+  }
+
+  pub fn get_seed(&self) -> u64 {
+    self.inner.state
+  }
+}
+
+impl Default for Pcg_Usize {
+  fn default() -> Self {
+    Self {
+      inner: Default::default(),
+    }
+  }
+}
+impl NumberGenerator<usize> for Pcg_Usize {
   fn get_next(&mut self) -> usize {
     self.inner.get_next() as usize
   }
 }
 
-impl Iterator for PcgUsizeWrapper {
+impl Iterator for Pcg_Usize {
   type Item = usize;
 
   fn next(&mut self) -> Option<Self::Item> {
@@ -691,42 +1032,8 @@ impl Iterator for PcgUsizeWrapper {
   }
 }
 
-// Type Aliases
-
-pub type Pcg8 = OneSeqXshRr<u16, u8>;
-pub type Pcg16 = OneSeqXshRr<u32, u16>;
-pub type Pcg32 = OneSeqXshRr<u64, u32>;
-pub type Pcg64 = OneSeqXshRr<u128, u64>;
-pub type PcgUsize = PcgUsizeWrapper;
-
-pub type Pcg16XshRr8 = OneSeqXshRr<u16, u8>;
-pub type Pcg32XshRr16 = OneSeqXshRr<u32, u16>;
-pub type Pcg64XshRr32 = OneSeqXshRr<u64, u32>;
-pub type Pcg128XshRr64 = OneSeqXshRr<u128, u64>;
-
-pub type Pcg16XshRs8 = OneSeqXshRs<u16, u8>;
-pub type Pcg32XshRs16 = OneSeqXshRs<u32, u16>;
-pub type Pcg64XshRs32 = OneSeqXshRs<u64, u32>;
-pub type Pcg128XshRs64 = OneSeqXshRs<u128, u64>;
-
-pub type PcgMcg16XshRr8 = McgXshRr<u16, u8>;
-pub type PcgMcg32XshRr16 = McgXshRr<u32, u16>;
-pub type PcgMcg64XshRr32 = McgXshRr<u64, u32>;
-pub type PcgMcg128XshRr64 = McgXshRr<u128, u64>;
-
-pub type PcgMcg16XshRs8 = McgXshRs<u16, u8>;
-pub type PcgMcg32XshRs16 = McgXshRs<u32, u16>;
-pub type PcgMcg64XshRs32 = McgXshRs<u64, u32>;
-pub type PcgMcg128XshRs64 = McgXshRs<u128, u64>;
-
-pub type Pcg8RxsMXs8 = OneSeqRxsMXs<u8, u8>;
-pub type Pcg16RxsMXs16 = OneSeqRxsMXs<u16, u16>;
-pub type Pcg32RxsMXs32 = OneSeqRxsMXs<u32, u32>;
-pub type Pcg64RxsMXs64 = OneSeqRxsMXs<u64, u64>;
-pub type Pcg128RxsMXs128 = OneSeqRxsMXs<u128, u128>;
-
-pub type Pcg64XslRr32 = OneSeqXslRr<u64, u32>;
-pub type Pcg128XslRr64 = OneSeqXslRr<u128, u64>;
-
-pub type PcgMcg64XslRr32 = McgXslRr<u64, u32>;
-pub type PcgMcg128XslRr64 = McgXslRr<u128, u64>;
+pub type Pcg_8 = Pcg_OneSeq_16_XSH_RR_8;
+pub type Pcg_16 = Pcg_OneSeq_32_XSH_RR_16;
+pub type Pcg_32 = Pcg_OneSeq_64_XSH_RR_32;
+pub type Pcg_64 = Pcg_OneSeq_128_XSH_RR_64;
+pub type Pcg_128 = Pcg_OneSeq_128_RXS_M_XS_128;

@@ -15,9 +15,3 @@ pub trait HashFunc {
 
   fn get_hash(seed: Self::Seed, bytes: &[u8]) -> Self::Output;
 }
-
-// Re-export high level structs
-pub use murmur3::{MurmurHash3_128, MurmurHash3_32};
-pub use pearson::{
-  PearsonHash_16, PearsonHash_32, PearsonHash_64, PearsonHash_8, PearsonHash_Usize,
-};
