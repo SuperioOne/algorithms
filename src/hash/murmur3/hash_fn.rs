@@ -42,8 +42,8 @@ macro_rules! u128_from {
 
 // Rust doesn't have C like fallthrough switch or goto statements (yet™). So, I used recursive macro to generate inlined tail part as a 'galaxy brain' dev.
 macro_rules! tail_gen {
-  ($type:ty, $src:expr, $dst:expr, $($rest:tt)+) => {
-    tail_iter!(0, $type, $src, $dst, $($rest)*);
+  ($type:ty, $src:expr, $dst:expr, [$id:literal $(,$rest:tt)*]) => {
+    tail_iter!(0, $type, $src, $dst, $id $(,$rest)*);
   };
 }
 
@@ -64,7 +64,7 @@ macro_rules! tail_iter {
 pub fn murmurhash3_32(seed: u32, input: &[u8]) -> u32 {
   let mut h1 = seed;
   let blocks_len = input.len() / 4;
-  let blocks_ptr: *const u32 = (&input[..(blocks_len * 4)]).as_ptr().cast();
+  let blocks_ptr: *const u32 = input.as_ptr().cast();
 
   for idx in 0..blocks_len {
     let mut k1 = unsafe { blocks_ptr.add(idx).read_unaligned() };
@@ -81,13 +81,13 @@ pub fn murmurhash3_32(seed: u32, input: &[u8]) -> u32 {
 
     match tail.len() & 3 {
       1 => {
-        tail_gen!(u32, tail, k1, 0);
+        tail_gen!(u32, tail, k1, [0]);
       }
       2 => {
-        tail_gen!(u32, tail, k1, 0, 1);
+        tail_gen!(u32, tail, k1, [0, 1]);
       }
       3 => {
-        tail_gen!(u32, tail, k1, 0, 1, 2);
+        tail_gen!(u32, tail, k1, [0, 1, 2]);
       }
       _ => unreachable!(),
     }
@@ -105,7 +105,7 @@ pub fn murmurhash3_128(seed: u64, input: &[u8]) -> u128 {
   let mut h1: u64 = seed as u64;
   let mut h2: u64 = seed as u64;
   let blocks_len = input.len() / 16;
-  let blocks_ptr: *const u64 = (&input[..(blocks_len * 16)]).as_ptr().cast();
+  let blocks_ptr: *const u64 = input.as_ptr().cast();
 
   for idx in 0..blocks_len {
     let mut k1 = unsafe { blocks_ptr.add(idx * 2).read_unaligned() };
@@ -137,56 +137,56 @@ pub fn murmurhash3_128(seed: u64, input: &[u8]) -> u128 {
     // Cursed code on purpose.
     match tail.len() & 15 {
       1 => {
-        tail_gen!(u64, tail, k1, 0);
+        tail_gen!(u64, tail, k1, [0]);
       }
       2 => {
-        tail_gen!(u64, tail, k1, 0, 1);
+        tail_gen!(u64, tail, k1, [0, 1]);
       }
       3 => {
-        tail_gen!(u64, tail, k1, 0, 1, 2);
+        tail_gen!(u64, tail, k1, [0, 1, 2]);
       }
       4 => {
-        tail_gen!(u64, tail, k1, 0, 1, 2, 3);
+        tail_gen!(u64, tail, k1, [0, 1, 2, 3]);
       }
       5 => {
-        tail_gen!(u64, tail, k1, 0, 1, 2, 3, 4);
+        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4]);
       }
       6 => {
-        tail_gen!(u64, tail, k1, 0, 1, 2, 3, 4, 5);
+        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4, 5]);
       }
       7 => {
-        tail_gen!(u64, tail, k1, 0, 1, 2, 3, 4, 5, 6);
+        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4, 5, 6]);
       }
       8 => {
-        tail_gen!(u64, tail, k1, 0, 1, 2, 3, 4, 5, 6, 7);
+        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4, 5, 6, 7]);
       }
       9 => {
-        tail_gen!(u64, tail, k1, 0, 1, 2, 3, 4, 5, 6, 7);
-        tail_gen!(u64, tail, k2, 8);
+        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4, 5, 6, 7]);
+        tail_gen!(u64, tail, k2, [8]);
       }
       10 => {
-        tail_gen!(u64, tail, k1, 0, 1, 2, 3, 4, 5, 6, 7);
-        tail_gen!(u64, tail, k2, 8, 9);
+        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4, 5, 6, 7]);
+        tail_gen!(u64, tail, k2, [8, 9]);
       }
       11 => {
-        tail_gen!(u64, tail, k1, 0, 1, 2, 3, 4, 5, 6, 7);
-        tail_gen!(u64, tail, k2, 8, 9, 10);
+        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4, 5, 6, 7]);
+        tail_gen!(u64, tail, k2, [8, 9, 10]);
       }
       12 => {
-        tail_gen!(u64, tail, k1, 0, 1, 2, 3, 4, 5, 6, 7);
-        tail_gen!(u64, tail, k2, 8, 9, 10, 11);
+        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4, 5, 6, 7]);
+        tail_gen!(u64, tail, k2, [8, 9, 10, 11]);
       }
       13 => {
-        tail_gen!(u64, tail, k1, 0, 1, 2, 3, 4, 5, 6, 7);
-        tail_gen!(u64, tail, k2, 8, 9, 10, 11, 12);
+        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4, 5, 6, 7]);
+        tail_gen!(u64, tail, k2, [8, 9, 10, 11, 12]);
       }
       14 => {
-        tail_gen!(u64, tail, k1, 0, 1, 2, 3, 4, 5, 6, 7);
-        tail_gen!(u64, tail, k2, 8, 9, 10, 11, 12, 13);
+        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4, 5, 6, 7]);
+        tail_gen!(u64, tail, k2, [8, 9, 10, 11, 12, 13]);
       }
       15 => {
-        tail_gen!(u64, tail, k1, 0, 1, 2, 3, 4, 5, 6, 7);
-        tail_gen!(u64, tail, k2, 8, 9, 10, 11, 12, 13, 14);
+        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4, 5, 6, 7]);
+        tail_gen!(u64, tail, k2, [8, 9, 10, 11, 12, 13, 14]);
       }
       _ => unreachable!(),
     }
