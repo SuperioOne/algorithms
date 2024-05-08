@@ -1,5 +1,6 @@
 mod murmur3_hash {
-  use algorithms::hash::{HashFunc, MurmurHash3_128, MurmurHash3_32};
+  use algorithms::hash::murmur3::{MurmurHash3_128, MurmurHash3_32};
+  use algorithms::hash::HashFunc;
 
   #[test]
   fn murmur3_32_verify() {

@@ -1,3 +1,5 @@
+#[cfg(target_feature = "rdrand")]
+pub mod hardware;
 pub mod lcg;
 pub mod pcg;
 
