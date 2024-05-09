@@ -1,8 +1,8 @@
 const K0: u64 = 0xC3A5_C85C_97CB_3127;
 const K1: u64 = 0xB492_B66F_BE98_F273;
 const K2: u64 = 0x9AE1_6A3B_2F90_404F;
-const C1: u32 = 0xcc9e2d51;
-const C2: u32 = 0x1b873593;
+const C1: u32 = 0xCC9E_2D51;
+const C2: u32 = 0x1B87_3593;
 
 macro_rules! fmix32 {
   ($input:expr) => {{
@@ -20,7 +20,7 @@ macro_rules! fmix32 {
 macro_rules! permute3 {
   ($a:expr, $b:expr, $c:expr) => {
     core::mem::swap($a, $b);
-    std::mem::swap($a, $c);
+    core::mem::swap($a, $c);
   };
 }
 
