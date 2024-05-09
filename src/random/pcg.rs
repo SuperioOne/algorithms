@@ -1028,7 +1028,7 @@ impl Iterator for Pcg_Usize {
   type Item = usize;
 
   fn next(&mut self) -> Option<Self::Item> {
-    Some(self.get_next() as usize)
+    Some(self.get_next())
   }
 }
 

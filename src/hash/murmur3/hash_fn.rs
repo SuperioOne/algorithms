@@ -102,8 +102,8 @@ pub fn murmurhash3_32(seed: u32, input: &[u8]) -> u32 {
 #[cfg(target_pointer_width = "64")]
 #[inline]
 pub fn murmurhash3_128(seed: u64, input: &[u8]) -> u128 {
-  let mut h1: u64 = seed as u64;
-  let mut h2: u64 = seed as u64;
+  let mut h1: u64 = seed;
+  let mut h2: u64 = seed;
   let blocks_len = input.len() / 16;
   let blocks_ptr: *const u64 = input.as_ptr().cast();
 

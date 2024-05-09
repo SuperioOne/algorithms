@@ -25,11 +25,10 @@ pub struct PearsonHash_Usize {
 }
 
 impl HashFunc for PearsonHash_8 {
-  type Seed = u8;
   type Output = u8;
 
-  fn get_hash(seed: Self::Seed, bytes: &[u8]) -> Self::Output {
-    pearson_hash_u8(seed, bytes)
+  fn get_hash(&self, bytes: &[u8]) -> Self::Output {
+    pearson_hash_u8(self.state, bytes)
   }
 }
 
@@ -43,21 +42,13 @@ impl HashStreamFunc for PearsonHash_8 {
   fn complete(&self) -> Self::Output {
     self.state
   }
-
-  fn complete_and_reset(&mut self) -> Self::Output {
-    let result = self.state;
-    self.state = u8::default();
-
-    result
-  }
 }
 
 impl HashFunc for PearsonHash_16 {
-  type Seed = u16;
   type Output = u16;
 
-  fn get_hash(seed: Self::Seed, bytes: &[u8]) -> Self::Output {
-    pearson_hash_u16(seed, bytes)
+  fn get_hash(&self, bytes: &[u8]) -> Self::Output {
+    pearson_hash_u16(self.state, bytes)
   }
 }
 
@@ -71,21 +62,13 @@ impl HashStreamFunc for PearsonHash_16 {
   fn complete(&self) -> Self::Output {
     self.state
   }
-
-  fn complete_and_reset(&mut self) -> Self::Output {
-    let result = self.state;
-    self.state = u16::default();
-
-    result
-  }
 }
 
 impl HashFunc for PearsonHash_32 {
-  type Seed = u32;
   type Output = u32;
 
-  fn get_hash(seed: Self::Seed, bytes: &[u8]) -> Self::Output {
-    pearson_hash_u32(seed, bytes)
+  fn get_hash(&self, bytes: &[u8]) -> Self::Output {
+    pearson_hash_u32(self.state, bytes)
   }
 }
 
@@ -99,21 +82,13 @@ impl HashStreamFunc for PearsonHash_32 {
   fn complete(&self) -> Self::Output {
     self.state
   }
-
-  fn complete_and_reset(&mut self) -> Self::Output {
-    let result = self.state;
-    self.state = u32::default();
-
-    result
-  }
 }
 
 impl HashFunc for PearsonHash_64 {
-  type Seed = u64;
   type Output = u64;
 
-  fn get_hash(seed: Self::Seed, bytes: &[u8]) -> Self::Output {
-    pearson_hash_u64(seed, bytes)
+  fn get_hash(&self, bytes: &[u8]) -> Self::Output {
+    pearson_hash_u64(self.state, bytes)
   }
 }
 
@@ -127,28 +102,20 @@ impl HashStreamFunc for PearsonHash_64 {
   fn complete(&self) -> Self::Output {
     self.state
   }
-
-  fn complete_and_reset(&mut self) -> Self::Output {
-    let result = self.state;
-    self.state = u64::default();
-
-    result
-  }
 }
 
 impl HashFunc for PearsonHash_Usize {
-  type Seed = usize;
   type Output = usize;
 
-  fn get_hash(seed: Self::Seed, bytes: &[u8]) -> Self::Output {
+  fn get_hash(&self, bytes: &[u8]) -> Self::Output {
     #[cfg(target_pointer_width = "64")]
     {
-      pearson_hash_u64(seed as u64, bytes) as Self::Output
+      pearson_hash_u64(self.state as u64, bytes) as Self::Output
     }
 
     #[cfg(target_pointer_width = "32")]
     {
-      pearson_hash_u32(seed as u32, bytes) as Self::Output
+      pearson_hash_u32(self.state as u32, bytes) as Self::Output
     }
   }
 }
@@ -170,13 +137,6 @@ impl HashStreamFunc for PearsonHash_Usize {
 
   fn complete(&self) -> Self::Output {
     self.state
-  }
-
-  fn complete_and_reset(&mut self) -> Self::Output {
-    let result = self.state;
-    self.state = usize::default();
-
-    result
   }
 }
 
