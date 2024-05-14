@@ -40,26 +40,6 @@ macro_rules! u128_from {
   }};
 }
 
-// Rust doesn't have C like fallthrough switch or goto statements (yet™). So, I used recursive macro to generate inlined tail part as a 'galaxy brain' dev.
-macro_rules! tail_gen {
-  ($type:ty, $src:expr, $dst:expr, [$id:literal $(,$rest:tt)*]) => {
-    tail_iter!(0, $type, $src, $dst, $id $(,$rest)*);
-  };
-}
-
-macro_rules! tail_iter {
-  ($shl:expr, $type:ty, $src:expr, $dst:expr, $id:literal, $($rest:tt)*) => {
-    tail_iter!($shl, $type, $src, $dst, $id);
-    tail_iter!($shl + 8, $type, $src, $dst, $($rest)*);
-  };
-
-($shl:expr, $type:ty, $src:expr, $dst:expr, $id:literal) => {
-    $dst ^= (*$src.get($id).unwrap() as $type) << $shl;
-  };
-
-($shl:expr, $type:ty, $src:expr, $dst:expr) => { }
-}
-
 #[inline]
 pub fn murmurhash3_32(seed: u32, input: &[u8]) -> u32 {
   let mut h1 = seed;
@@ -74,22 +54,16 @@ pub fn murmurhash3_32(seed: u32, input: &[u8]) -> u32 {
     h1 = h1.rotate_left(13).wrapping_mul(5).wrapping_add(0xE654_6B64);
   }
 
-  let tail = &input[(blocks_len * 4)..];
+  let tail_len = input.len() & 3;
 
-  if !tail.is_empty() {
+  if tail_len > 0 {
+    let tail: *const u8 = unsafe { input.as_ptr().byte_add(input.len() - tail_len) };
     let mut k1: u32 = 0;
+    let mut l: u32 = 0;
 
-    match tail.len() & 3 {
-      1 => {
-        tail_gen!(u32, tail, k1, [0]);
-      }
-      2 => {
-        tail_gen!(u32, tail, k1, [0, 1]);
-      }
-      3 => {
-        tail_gen!(u32, tail, k1, [0, 1, 2]);
-      }
-      _ => unreachable!(),
+    for i in 0..tail_len {
+      k1 ^= (unsafe { tail.add(i).read() } as u32) << l;
+      l += 8;
     }
 
     h1 ^= k1.wrapping_mul(C1_32).rotate_left(15).wrapping_mul(C2_32);
@@ -128,65 +102,31 @@ pub fn murmurhash3_128(seed: u64, input: &[u8]) -> u128 {
       .wrapping_add(0x3849_5AB5);
   }
 
-  let tail = &input[(blocks_len * 16)..];
+  let tail_len: usize = input.len() & 15;
 
-  if !tail.is_empty() {
+  if tail_len > 0 {
+    let tail: *const u8 = unsafe { input.as_ptr().byte_add(input.len() - tail_len) };
     let mut k1: u64 = 0;
     let mut k2: u64 = 0;
 
-    // Cursed code on purpose.
-    match tail.len() & 15 {
-      1 => {
-        tail_gen!(u64, tail, k1, [0]);
+    match tail_len {
+      1..=7 => {
+        let mut l: u32 = 0;
+
+        for i in 0..tail_len {
+          k1 ^= (unsafe { tail.add(i).read() } as u64) << l;
+          l += 8;
+        }
       }
-      2 => {
-        tail_gen!(u64, tail, k1, [0, 1]);
-      }
-      3 => {
-        tail_gen!(u64, tail, k1, [0, 1, 2]);
-      }
-      4 => {
-        tail_gen!(u64, tail, k1, [0, 1, 2, 3]);
-      }
-      5 => {
-        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4]);
-      }
-      6 => {
-        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4, 5]);
-      }
-      7 => {
-        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4, 5, 6]);
-      }
-      8 => {
-        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4, 5, 6, 7]);
-      }
-      9 => {
-        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4, 5, 6, 7]);
-        tail_gen!(u64, tail, k2, [8]);
-      }
-      10 => {
-        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4, 5, 6, 7]);
-        tail_gen!(u64, tail, k2, [8, 9]);
-      }
-      11 => {
-        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4, 5, 6, 7]);
-        tail_gen!(u64, tail, k2, [8, 9, 10]);
-      }
-      12 => {
-        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4, 5, 6, 7]);
-        tail_gen!(u64, tail, k2, [8, 9, 10, 11]);
-      }
-      13 => {
-        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4, 5, 6, 7]);
-        tail_gen!(u64, tail, k2, [8, 9, 10, 11, 12]);
-      }
-      14 => {
-        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4, 5, 6, 7]);
-        tail_gen!(u64, tail, k2, [8, 9, 10, 11, 12, 13]);
-      }
-      15 => {
-        tail_gen!(u64, tail, k1, [0, 1, 2, 3, 4, 5, 6, 7]);
-        tail_gen!(u64, tail, k2, [8, 9, 10, 11, 12, 13, 14]);
+      8 => k1 ^= unsafe { (tail as *const u64).read_unaligned() },
+      9..=15 => {
+        k1 ^= unsafe { (tail as *const u64).read_unaligned() };
+        k2 ^= {
+          let t: u64 = unsafe { (tail as *const u64).byte_add(tail_len - 8).read_unaligned() };
+          let r: u32 = 64 - ((tail_len - 8) as u32 * 8);
+
+          (t.rotate_right(r)) & (u64::MAX >> r)
+        };
       }
       _ => unreachable!(),
     }
