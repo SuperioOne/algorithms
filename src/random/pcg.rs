@@ -962,16 +962,16 @@ impl Iterator for Pcg_MCG_128_XSL_RR_64 {
 // Type Aliases
 
 #[cfg(target_pointer_width = "64")]
-pub struct Pcg_Usize {
-  inner: Pcg_64,
+pub struct PcgUsize {
+  inner: Pcg64,
 }
 
 #[cfg(target_pointer_width = "64")]
-impl Pcg_Usize {
+impl PcgUsize {
   pub fn new(seed: u128) -> Self {
     {
       Self {
-        inner: Pcg_64::new(seed),
+        inner: Pcg64::new(seed),
       }
     }
   }
@@ -987,16 +987,16 @@ impl Pcg_Usize {
 }
 
 #[cfg(target_pointer_width = "32")]
-pub struct Pcg_Usize {
-  inner: Pcg_32,
+pub struct PcgUsize {
+  inner: Pcg32,
 }
 
 #[cfg(target_pointer_width = "32")]
-impl Pcg_Usize {
+impl PcgUsize {
   pub fn new(seed: u64) -> Self {
     {
       Self {
-        inner: Pcg_32::new(seed),
+        inner: Pcg32::new(seed),
       }
     }
   }
@@ -1011,20 +1011,20 @@ impl Pcg_Usize {
   }
 }
 
-impl Default for Pcg_Usize {
+impl Default for PcgUsize {
   fn default() -> Self {
     Self {
       inner: Default::default(),
     }
   }
 }
-impl NumberGenerator<usize> for Pcg_Usize {
+impl NumberGenerator<usize> for PcgUsize {
   fn get_next(&mut self) -> usize {
     self.inner.get_next() as usize
   }
 }
 
-impl Iterator for Pcg_Usize {
+impl Iterator for PcgUsize {
   type Item = usize;
 
   fn next(&mut self) -> Option<Self::Item> {
@@ -1032,8 +1032,8 @@ impl Iterator for Pcg_Usize {
   }
 }
 
-pub type Pcg_8 = Pcg_OneSeq_16_XSH_RR_8;
-pub type Pcg_16 = Pcg_OneSeq_32_XSH_RR_16;
-pub type Pcg_32 = Pcg_OneSeq_64_XSH_RR_32;
-pub type Pcg_64 = Pcg_OneSeq_128_XSH_RR_64;
-pub type Pcg_128 = Pcg_OneSeq_128_RXS_M_XS_128;
+pub type Pcg8 = Pcg_OneSeq_16_XSH_RR_8;
+pub type Pcg16 = Pcg_OneSeq_32_XSH_RR_16;
+pub type Pcg32 = Pcg_OneSeq_64_XSH_RR_32;
+pub type Pcg64 = Pcg_OneSeq_128_XSH_RR_64;
+pub type Pcg128 = Pcg_OneSeq_128_RXS_M_XS_128;

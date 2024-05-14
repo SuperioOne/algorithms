@@ -4,27 +4,27 @@ pub mod hash_fn;
 use self::hash_fn::{pearson_hash_u16, pearson_hash_u32, pearson_hash_u64, pearson_hash_u8};
 use super::{HashFunc, HashStreamFunc};
 
-pub struct PearsonHash_8 {
+pub struct PearsonHash8 {
   state: u8,
 }
 
-pub struct PearsonHash_16 {
+pub struct PearsonHash16 {
   state: u16,
 }
 
-pub struct PearsonHash_32 {
+pub struct PearsonHash32 {
   state: u32,
 }
 
-pub struct PearsonHash_64 {
+pub struct PearsonHash64 {
   state: u64,
 }
 
-pub struct PearsonHash_Usize {
+pub struct PearsonHashUsize {
   state: usize,
 }
 
-impl HashFunc for PearsonHash_8 {
+impl HashFunc for PearsonHash8 {
   type Output = u8;
 
   fn get_hash(&self, bytes: &[u8]) -> Self::Output {
@@ -32,7 +32,7 @@ impl HashFunc for PearsonHash_8 {
   }
 }
 
-impl HashStreamFunc for PearsonHash_8 {
+impl HashStreamFunc for PearsonHash8 {
   type Output = u8;
 
   fn update(&mut self, input: &[u8]) {
@@ -44,7 +44,7 @@ impl HashStreamFunc for PearsonHash_8 {
   }
 }
 
-impl HashFunc for PearsonHash_16 {
+impl HashFunc for PearsonHash16 {
   type Output = u16;
 
   fn get_hash(&self, bytes: &[u8]) -> Self::Output {
@@ -52,7 +52,7 @@ impl HashFunc for PearsonHash_16 {
   }
 }
 
-impl HashStreamFunc for PearsonHash_16 {
+impl HashStreamFunc for PearsonHash16 {
   type Output = u16;
 
   fn update(&mut self, input: &[u8]) {
@@ -64,7 +64,7 @@ impl HashStreamFunc for PearsonHash_16 {
   }
 }
 
-impl HashFunc for PearsonHash_32 {
+impl HashFunc for PearsonHash32 {
   type Output = u32;
 
   fn get_hash(&self, bytes: &[u8]) -> Self::Output {
@@ -72,7 +72,7 @@ impl HashFunc for PearsonHash_32 {
   }
 }
 
-impl HashStreamFunc for PearsonHash_32 {
+impl HashStreamFunc for PearsonHash32 {
   type Output = u32;
 
   fn update(&mut self, input: &[u8]) {
@@ -84,7 +84,7 @@ impl HashStreamFunc for PearsonHash_32 {
   }
 }
 
-impl HashFunc for PearsonHash_64 {
+impl HashFunc for PearsonHash64 {
   type Output = u64;
 
   fn get_hash(&self, bytes: &[u8]) -> Self::Output {
@@ -92,7 +92,7 @@ impl HashFunc for PearsonHash_64 {
   }
 }
 
-impl HashStreamFunc for PearsonHash_64 {
+impl HashStreamFunc for PearsonHash64 {
   type Output = u64;
 
   fn update(&mut self, input: &[u8]) {
@@ -104,7 +104,7 @@ impl HashStreamFunc for PearsonHash_64 {
   }
 }
 
-impl HashFunc for PearsonHash_Usize {
+impl HashFunc for PearsonHashUsize {
   type Output = usize;
 
   fn get_hash(&self, bytes: &[u8]) -> Self::Output {
@@ -120,7 +120,7 @@ impl HashFunc for PearsonHash_Usize {
   }
 }
 
-impl HashStreamFunc for PearsonHash_Usize {
+impl HashStreamFunc for PearsonHashUsize {
   type Output = usize;
 
   fn update(&mut self, input: &[u8]) {
@@ -140,7 +140,7 @@ impl HashStreamFunc for PearsonHash_Usize {
   }
 }
 
-impl std::hash::Hasher for PearsonHash_64 {
+impl std::hash::Hasher for PearsonHash64 {
   fn finish(&self) -> u64 {
     self.complete()
   }

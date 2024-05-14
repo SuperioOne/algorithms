@@ -1,3 +1,9 @@
+macro_rules! u128_from {
+  ($low:expr, $high:expr) => {
+    (($high as u128) << 64) + ($low as u128)
+  };
+}
+
 pub(super) const K0: u64 = 0xC3A5_C85C_97CB_3127;
 pub(super) const K1: u64 = 0xB492_B66F_BE98_F273;
 pub(super) const K2: u64 = 0x9AE1_6A3B_2F90_404F;
@@ -458,4 +464,398 @@ pub fn cityhash_64(input: &[u8]) -> u64 {
 pub fn cityhash_64_with_seed(input: &[u8], seed0: u64, seed1: u64) -> u64 {
   let hash: u64 = cityhash_64(input);
   hash_len_16(hash.wrapping_sub(seed0), seed1)
+}
+
+// 128-bit
+
+#[inline]
+fn city_murmur(input: &[u8], seed0: u64, seed1: u64) -> u128 {
+  let input_ptr: *const u64 = input.as_ptr().cast();
+  let mut a: u64 = seed0;
+  let mut b: u64 = seed1;
+  let mut c: u64;
+  let mut d: u64;
+
+  if input.len() <= 16 {
+    a = shift_mix64!(a.wrapping_mul(K1)).wrapping_mul(K1);
+    c = b.wrapping_mul(K1).wrapping_add(hash_64_0_to_16(input));
+
+    let d1 = if input.len() >= 8 {
+      read!(input_ptr)
+    } else {
+      c
+    };
+
+    d = shift_mix64!(a.wrapping_add(d1));
+  } else {
+    c = hash_len_16(read!(input_ptr, input.len() - 8).wrapping_add(K1), a);
+    d = hash_len_16(
+      b.wrapping_add(input.len() as u64),
+      c.wrapping_add(read!(input_ptr, input.len() - 16)),
+    );
+    a = a.wrapping_add(d);
+
+    let mut offset: usize = 0;
+    let mut len: usize = input.len();
+    loop {
+      a ^= shift_mix64!(read!(input_ptr, offset).wrapping_mul(K1)).wrapping_mul(K1);
+      a = a.wrapping_mul(K1);
+      b ^= a;
+      c ^= shift_mix64!(read!(input_ptr, offset + 8).wrapping_mul(K1)).wrapping_mul(K1);
+      c = c.wrapping_mul(K1);
+      d ^= c;
+
+      len -= 16;
+      offset += 16;
+
+      if len <= 16 {
+        break;
+      }
+    }
+  }
+
+  a = hash_len_16(a, c);
+  b = hash_len_16(d, b);
+
+  u128_from!(a ^ b, hash_len_16(b, a))
+}
+
+pub fn cityhash_128_with_seed(input: &[u8], seed0: u64, seed1: u64) -> u128 {
+  if input.len() < 128 {
+    return city_murmur(input, seed0, seed1);
+  }
+
+  let input_ptr: *const u64 = input.as_ptr().cast();
+  let mut v: (u64, u64) = (0, 0);
+  let mut w: (u64, u64) = (0, 0);
+  let mut x: u64 = seed0;
+  let mut y: u64 = seed1;
+  let mut z: u64 = (input.len() as u64).wrapping_mul(K1);
+  v.0 = (y ^ K1)
+    .rotate_right(49)
+    .wrapping_mul(K1)
+    .wrapping_add(read!(input_ptr));
+  v.1 = v
+    .0
+    .rotate_right(42)
+    .wrapping_mul(K1)
+    .wrapping_add(read!(input_ptr, 8));
+  w.0 = y
+    .wrapping_add(z)
+    .rotate_right(35)
+    .wrapping_mul(K1)
+    .wrapping_add(x);
+  w.1 = x
+    .wrapping_add(read!(input_ptr, 88))
+    .rotate_right(53)
+    .wrapping_mul(K1);
+
+  let mut len: usize = input.len();
+  let mut offset: usize = 0;
+  loop {
+    x = x
+      .wrapping_add(y)
+      .wrapping_add(v.0)
+      .wrapping_add(read!(input_ptr, offset + 8))
+      .rotate_right(37)
+      .wrapping_mul(K1);
+    y = y
+      .wrapping_add(v.1)
+      .wrapping_add(read!(input_ptr, offset + 48))
+      .rotate_right(42)
+      .wrapping_mul(K1);
+    x ^= w.1;
+    y = y
+      .wrapping_add(v.0)
+      .wrapping_add(read!(input_ptr, offset + 40));
+    z = z.wrapping_add(w.0).rotate_right(33).wrapping_mul(K1);
+    v = weakhash_len_32_from!(input_ptr, offset, v.1.wrapping_mul(K1), x.wrapping_add(w.0));
+    w = weakhash_len_32_from!(
+      input_ptr,
+      offset + 32,
+      z.wrapping_add(w.1),
+      y.wrapping_add(read!(input_ptr, offset + 16))
+    );
+
+    core::mem::swap(&mut z, &mut x);
+    offset += 64;
+
+    x = x
+      .wrapping_add(y)
+      .wrapping_add(v.0)
+      .wrapping_add(read!(input_ptr, offset + 8))
+      .rotate_right(37)
+      .wrapping_mul(K1);
+    y = y
+      .wrapping_add(v.1)
+      .wrapping_add(read!(input_ptr, offset + 48))
+      .rotate_right(42)
+      .wrapping_mul(K1);
+    x ^= w.1;
+    y = y
+      .wrapping_add(v.0)
+      .wrapping_add(read!(input_ptr, offset + 40));
+    z = z.wrapping_add(w.0).rotate_right(33).wrapping_mul(K1);
+    v = weakhash_len_32_from!(input_ptr, offset, v.1.wrapping_mul(K1), x.wrapping_add(w.0));
+    w = weakhash_len_32_from!(
+      input_ptr,
+      offset + 32,
+      z.wrapping_add(w.1),
+      y.wrapping_add(read!(input_ptr, offset + 16))
+    );
+
+    core::mem::swap(&mut z, &mut x);
+    offset += 64;
+
+    len -= 128;
+    if len < 128 {
+      break;
+    }
+  }
+
+  x = x.wrapping_add(v.0.wrapping_add(z).rotate_right(49).wrapping_mul(K0));
+  y = y.wrapping_mul(K0).wrapping_add(w.1.rotate_right(37));
+  z = z.wrapping_mul(K0).wrapping_add(w.0.rotate_right(27));
+  w.0 = w.0.wrapping_mul(9);
+  v.0 = v.0.wrapping_mul(K0);
+
+  let mut tail_done: usize = 0;
+
+  loop {
+    if tail_done >= len {
+      break;
+    }
+
+    tail_done += 32;
+    y = x
+      .wrapping_add(y)
+      .rotate_right(42)
+      .wrapping_mul(K0)
+      .wrapping_add(v.1);
+    w.0 = w
+      .0
+      .wrapping_add(read!(input_ptr, offset + len - tail_done + 16));
+    x = x.wrapping_mul(K0).wrapping_add(w.0);
+    z = z
+      .wrapping_add(w.1)
+      .wrapping_add(read!(input_ptr, offset + len - tail_done));
+    w.1 = w.1.wrapping_add(v.0);
+    v = weakhash_len_32_from!(
+      input_ptr,
+      offset + len - tail_done,
+      v.0.wrapping_add(z),
+      v.1
+    );
+    v.0 = v.0.wrapping_mul(K0);
+  }
+
+  x = hash_len_16(x, v.0);
+  y = hash_len_16(y.wrapping_add(z), w.0);
+
+  u128_from!(
+    hash_len_16(x.wrapping_add(v.1), w.1).wrapping_add(y),
+    hash_len_16(x.wrapping_add(w.1), y.wrapping_add(v.1))
+  )
+}
+
+pub fn cityhash_128(input: &[u8]) -> u128 {
+  if input.len() >= 16 {
+    let ptr: *const u64 = input.as_ptr().cast();
+    let low: u64 = read!(ptr);
+    let high: u64 = read!(ptr, 8).wrapping_add(K0);
+
+    cityhash_128_with_seed(&input[16..], low, high)
+  } else {
+    cityhash_128_with_seed(input, K0, K1)
+  }
+}
+
+// CRC 256-bit
+
+macro_rules! crc32c {
+  // TODO: Add a software/arm instruction fallback and delete target_feature cfgs from Crc
+  // versions.
+  ($crc:expr, $v:expr) => {
+    unsafe { _mm_crc32_u64($crc, $v) }
+  };
+}
+
+#[cfg(target_arch = "x86_64")]
+#[cfg(target_feature = "sse4.2")]
+#[inline]
+fn cityhash_crc256_long(input: &[u8], seed: u64) -> super::U256 {
+  use std::arch::x86_64::_mm_crc32_u64;
+
+  let input_ptr: *const u64 = input.as_ptr().cast();
+  let mut result = super::U256(0, 0, 0, 0);
+
+  let mut a: u64 = read!(input_ptr, 56).wrapping_add(K0);
+  let mut b: u64 = read!(input_ptr, 96).wrapping_add(K0);
+  let mut c: u64 = hash_len_16(b, input.len() as u64);
+  let mut d: u64 = read!(input_ptr, 120)
+    .wrapping_mul(K0)
+    .wrapping_add(input.len() as u64);
+
+  result.0 = c;
+  result.1 = d;
+
+  let mut e: u64 = read!(input_ptr, 184).wrapping_add(seed);
+  let mut f: u64 = 0;
+  let mut g: u64 = 0;
+  let mut h: u64 = c.wrapping_add(d);
+  let mut x: u64 = seed;
+  let mut y: u64 = 0;
+  let mut z: u64 = 0;
+
+  let mut len: usize = input.len();
+  let mut iters: usize = len / 240;
+  let mut offset: usize = 0;
+  len -= iters.wrapping_mul(240);
+
+  macro_rules! chunk {
+    ($r:expr) => {
+      permute3!(&mut x, &mut z, &mut y);
+      b = b.wrapping_add(read!(input_ptr, offset));
+      c = c.wrapping_add(read!(input_ptr, offset + 8));
+      d = d.wrapping_add(read!(input_ptr, offset + 16));
+      e = e.wrapping_add(read!(input_ptr, offset + 24));
+      f = f.wrapping_add(read!(input_ptr, offset + 32));
+      a = a.wrapping_add(b);
+      h = h.wrapping_add(f);
+      b = b.wrapping_add(c);
+      f = f.wrapping_add(d);
+      g = g.wrapping_add(e);
+      e = e.wrapping_add(z);
+      g = g.wrapping_add(x);
+      z = crc32c!(z, b.wrapping_add(g));
+      y = crc32c!(y, e.wrapping_add(h));
+      x = crc32c!(x, f.wrapping_add(a));
+      e = e.rotate_right($r);
+      c = c.wrapping_add(e);
+      offset += 40;
+    };
+  }
+
+  loop {
+    chunk!(0_u32);
+    permute3!(&mut a, &mut h, &mut c);
+    chunk!(33_u32);
+    permute3!(&mut a, &mut h, &mut f);
+    chunk!(0_u32);
+    permute3!(&mut b, &mut h, &mut f);
+    chunk!(42_u32);
+    permute3!(&mut b, &mut h, &mut d);
+    chunk!(0_u32);
+    permute3!(&mut b, &mut h, &mut e);
+    chunk!(33_u32);
+    permute3!(&mut a, &mut h, &mut e);
+
+    iters -= 1;
+    if iters <= 0 {
+      break;
+    }
+  }
+
+  while len >= 40 {
+    chunk!(29);
+    e ^= a.rotate_right(20);
+    h = h.wrapping_add(b.rotate_right(30));
+    g ^= c.rotate_right(40);
+    f = f.wrapping_add(d.rotate_right(34));
+    permute3!(&mut c, &mut h, &mut g);
+    len -= 40;
+  }
+
+  if len > 0 {
+    offset = (offset + len) - 40;
+    chunk!(33);
+    e ^= a.rotate_right(43);
+    h = h.wrapping_add(b.rotate_right(42));
+    g ^= c.rotate_right(41);
+    f = f.wrapping_add(d.rotate_right(40));
+  }
+
+  result.0 ^= h;
+  result.1 ^= g;
+  g = g.wrapping_add(h);
+  a = hash_len_16(a, g.wrapping_add(z));
+  x = x.wrapping_add(y << 32);
+  b = b.wrapping_add(x);
+  c = hash_len_16(c, z).wrapping_add(h);
+  d = hash_len_16(d, e.wrapping_add(result.0));
+  g = g.wrapping_add(e);
+  h = h.wrapping_add(hash_len_16(x, f));
+  e = hash_len_16(a, d).wrapping_add(g);
+  z = hash_len_16(b, c).wrapping_add(a);
+  y = hash_len_16(g, h).wrapping_add(c);
+  result.0 = e.wrapping_add(z).wrapping_add(y).wrapping_add(x);
+  a = shift_mix64!(a.wrapping_add(y).wrapping_mul(K0))
+    .wrapping_mul(K0)
+    .wrapping_add(b);
+  result.1 = result.1.wrapping_add(a).wrapping_add(result.0);
+  a = shift_mix64!(a.wrapping_mul(K0))
+    .wrapping_mul(K0)
+    .wrapping_add(c);
+  result.2 = a.wrapping_add(result.1);
+  a = shift_mix64!(a.wrapping_add(e).wrapping_mul(K0)).wrapping_mul(K0);
+  result.3 = a.wrapping_add(result.2);
+
+  result
+}
+
+#[cfg(target_arch = "x86_64")]
+#[cfg(target_feature = "sse4.2")]
+#[inline]
+fn cityhash_crc256_short(input: &[u8]) -> super::U256 {
+  let padded_buf: &mut [u8] = &mut [0; 240];
+  unsafe {
+    input
+      .as_ptr()
+      .copy_to_nonoverlapping(padded_buf.as_mut_ptr(), input.len());
+  };
+
+  cityhash_crc256_long(padded_buf, (!input.len() as u32) as u64)
+}
+
+#[cfg(target_arch = "x86_64")]
+#[cfg(target_feature = "sse4.2")]
+pub fn cityhash_crc256(input: &[u8]) -> super::U256 {
+  if input.len() >= 240 {
+    cityhash_crc256_long(input, 0)
+  } else {
+    cityhash_crc256_short(input)
+  }
+}
+
+// CRC 128-bit
+
+#[cfg(target_arch = "x86_64")]
+#[cfg(target_feature = "sse4.2")]
+pub fn cityhash_crc128_with_seed(input: &[u8], seed0: u64, seed1: u64) -> u128 {
+  if input.len() <= 900 {
+    cityhash_128_with_seed(input, seed0, seed1)
+  } else {
+    let result = cityhash_crc256(input);
+    let u: u64 = seed1.wrapping_add(result.0);
+    let v: u64 = seed0.wrapping_add(result.1);
+    let low: u64 = hash_len_16(u, v.wrapping_add(result.2));
+    let high: u64 = hash_len_16(
+      v.rotate_right(32),
+      u.wrapping_mul(K0).wrapping_add(result.3),
+    );
+
+    u128_from!(low, high)
+  }
+}
+
+#[cfg(target_arch = "x86_64")]
+#[cfg(target_feature = "sse4.2")]
+pub fn cityhash_crc128(input: &[u8]) -> u128 {
+  if input.len() <= 900 {
+    cityhash_128(input)
+  } else {
+    let result = cityhash_crc256(input);
+
+    u128_from!(result.2, result.3)
+  }
 }

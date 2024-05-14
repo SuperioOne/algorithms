@@ -20,27 +20,27 @@ const A_USIZE: usize = A_U32 as usize;
 #[cfg(target_pointer_width = "32")]
 const C_USIZE: usize = 69;
 
-pub struct Lcg_8 {
+pub struct Lcg8 {
   state: u8,
 }
 
-pub struct Lcg_16 {
+pub struct Lcg16 {
   state: u16,
 }
 
-pub struct Lcg_32 {
+pub struct Lcg32 {
   state: u32,
 }
 
-pub struct Lcg_64 {
+pub struct Lcg64 {
   state: u64,
 }
 
-pub struct Lcg_Usize {
+pub struct LcgUsize {
   state: usize,
 }
 
-impl Lcg_8 {
+impl Lcg8 {
   pub fn new(seed: u8) -> Self {
     Self { state: seed }
   }
@@ -55,13 +55,13 @@ impl Lcg_8 {
   }
 }
 
-impl Default for Lcg_8 {
+impl Default for Lcg8 {
   fn default() -> Self {
     Self::new(u8::default())
   }
 }
 
-impl Iterator for Lcg_8 {
+impl Iterator for Lcg8 {
   type Item = u8;
 
   fn next(&mut self) -> Option<Self::Item> {
@@ -69,7 +69,7 @@ impl Iterator for Lcg_8 {
   }
 }
 
-impl NumberGenerator<u8> for Lcg_8 {
+impl NumberGenerator<u8> for Lcg8 {
   fn get_next(&mut self) -> u8 {
     let next: u8 = self.state.wrapping_mul(A_U8).wrapping_add(C_U8);
     self.state = next;
@@ -77,7 +77,7 @@ impl NumberGenerator<u8> for Lcg_8 {
   }
 }
 
-impl Lcg_16 {
+impl Lcg16 {
   pub fn new(seed: u16) -> Self {
     Self { state: seed }
   }
@@ -92,13 +92,13 @@ impl Lcg_16 {
   }
 }
 
-impl Default for Lcg_16 {
+impl Default for Lcg16 {
   fn default() -> Self {
     Self::new(u16::default())
   }
 }
 
-impl Iterator for Lcg_16 {
+impl Iterator for Lcg16 {
   type Item = u16;
 
   fn next(&mut self) -> Option<Self::Item> {
@@ -106,7 +106,7 @@ impl Iterator for Lcg_16 {
   }
 }
 
-impl NumberGenerator<u16> for Lcg_16 {
+impl NumberGenerator<u16> for Lcg16 {
   fn get_next(&mut self) -> u16 {
     let next: u16 = self.state.wrapping_mul(A_U16).wrapping_add(C_U16);
     self.state = next;
@@ -114,7 +114,7 @@ impl NumberGenerator<u16> for Lcg_16 {
   }
 }
 
-impl Lcg_32 {
+impl Lcg32 {
   pub fn new(seed: u32) -> Self {
     Self { state: seed }
   }
@@ -129,13 +129,13 @@ impl Lcg_32 {
   }
 }
 
-impl Default for Lcg_32 {
+impl Default for Lcg32 {
   fn default() -> Self {
     Self::new(u32::default())
   }
 }
 
-impl Iterator for Lcg_32 {
+impl Iterator for Lcg32 {
   type Item = u32;
 
   fn next(&mut self) -> Option<Self::Item> {
@@ -143,7 +143,7 @@ impl Iterator for Lcg_32 {
   }
 }
 
-impl NumberGenerator<u32> for Lcg_32 {
+impl NumberGenerator<u32> for Lcg32 {
   fn get_next(&mut self) -> u32 {
     let next: u32 = self.state.wrapping_mul(A_U32).wrapping_add(C_U32);
     self.state = next;
@@ -151,7 +151,7 @@ impl NumberGenerator<u32> for Lcg_32 {
   }
 }
 
-impl Lcg_64 {
+impl Lcg64 {
   pub fn new(seed: u64) -> Self {
     Self { state: seed }
   }
@@ -166,13 +166,13 @@ impl Lcg_64 {
   }
 }
 
-impl Default for Lcg_64 {
+impl Default for Lcg64 {
   fn default() -> Self {
     Self::new(u64::default())
   }
 }
 
-impl Iterator for Lcg_64 {
+impl Iterator for Lcg64 {
   type Item = u64;
 
   fn next(&mut self) -> Option<Self::Item> {
@@ -180,7 +180,7 @@ impl Iterator for Lcg_64 {
   }
 }
 
-impl NumberGenerator<u64> for Lcg_64 {
+impl NumberGenerator<u64> for Lcg64 {
   fn get_next(&mut self) -> u64 {
     let next: u64 = self.state.wrapping_mul(A_U64).wrapping_add(C_U64);
     self.state = next;
@@ -188,7 +188,7 @@ impl NumberGenerator<u64> for Lcg_64 {
   }
 }
 
-impl Lcg_Usize {
+impl LcgUsize {
   pub fn new(seed: usize) -> Self {
     Self { state: seed }
   }
@@ -203,13 +203,13 @@ impl Lcg_Usize {
   }
 }
 
-impl Default for Lcg_Usize {
+impl Default for LcgUsize {
   fn default() -> Self {
     Self::new(usize::default())
   }
 }
 
-impl Iterator for Lcg_Usize {
+impl Iterator for LcgUsize {
   type Item = usize;
 
   fn next(&mut self) -> Option<Self::Item> {
@@ -217,7 +217,7 @@ impl Iterator for Lcg_Usize {
   }
 }
 
-impl NumberGenerator<usize> for Lcg_Usize {
+impl NumberGenerator<usize> for LcgUsize {
   fn get_next(&mut self) -> usize {
     let next: usize = self.state.wrapping_mul(A_USIZE).wrapping_add(C_USIZE);
     self.state = next;

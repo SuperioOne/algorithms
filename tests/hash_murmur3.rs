@@ -1,10 +1,10 @@
 mod murmur3_hash {
-  use algorithms::hash::murmur3::{MurmurHash3_128, MurmurHash3_32};
+  use algorithms::hash::murmur3::{Murmur3Hash128, Murmur3Hash32};
   use algorithms::hash::HashFunc;
 
   #[test]
   fn murmur3_32_verify() {
-    let hasher = MurmurHash3_32::default();
+    let hasher = Murmur3Hash32::default();
 
     assert_eq!(0x00000000, hasher.get_hash(b""));
     assert_eq!(0xBA6BD213, hasher.get_hash(b"test"));
@@ -18,7 +18,7 @@ mod murmur3_hash {
   #[test]
   fn murmur3_32_with_seed_verify() {
     let seed: u32 = 0x9747B28C;
-    let hasher = MurmurHash3_32::new_with_seed(seed);
+    let hasher = Murmur3Hash32::new_with_seed(seed);
 
     assert_eq!(0xEBB6C228, hasher.get_hash(b""));
     assert_eq!(0x704B81DC, hasher.get_hash(b"test"));
@@ -31,7 +31,7 @@ mod murmur3_hash {
 
   #[test]
   fn murmur3_128_verify() {
-    let hasher = MurmurHash3_128::default();
+    let hasher = Murmur3Hash128::default();
 
     assert_eq!(0x00000000, hasher.get_hash(b""));
     assert_eq!(
@@ -51,7 +51,7 @@ mod murmur3_hash {
   #[test]
   fn murmur3_128_with_seed_verify() {
     let seed: u64 = 0x9747B28C;
-    let hasher = MurmurHash3_128::new_with_seed(seed);
+    let hasher = Murmur3Hash128::new_with_seed(seed);
 
     assert_eq!(0x392B208A1DAABBB3_93B0608FE302957A, hasher.get_hash(b""));
     assert_eq!(
