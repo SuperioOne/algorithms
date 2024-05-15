@@ -32,7 +32,7 @@ macro_rules! fmix64 {
 }
 
 macro_rules! u128_from {
-  ($high:expr, $low:expr) => {{
+  ($low:expr, $high:expr) => {{
     let h: u64 = $high;
     let l: u64 = $low;
 
@@ -125,14 +125,14 @@ pub fn murmurhash3_128(seed: u64, input: &[u8]) -> u128 {
           let t: u64 = unsafe { (tail as *const u64).byte_add(tail_len - 8).read_unaligned() };
           let r: u32 = 64 - ((tail_len - 8) as u32 * 8);
 
-          (t.rotate_right(r)) & (u64::MAX >> r)
+          t >> r
         };
+
+        k2 = k2.wrapping_mul(C2_64).rotate_left(33).wrapping_mul(C1_64);
+        h2 ^= k2;
       }
       _ => unreachable!(),
     }
-
-    k2 = k2.wrapping_mul(C2_64).rotate_left(33).wrapping_mul(C1_64);
-    h2 ^= k2;
 
     k1 = k1.wrapping_mul(C1_64).rotate_left(31).wrapping_mul(C2_64);
     h1 ^= k1;
@@ -150,5 +150,5 @@ pub fn murmurhash3_128(seed: u64, input: &[u8]) -> u128 {
   h1 = h1.wrapping_add(h2);
   h2 = h2.wrapping_add(h1);
 
-  u128_from!(h1, h2)
+  u128_from!(h2, h1)
 }
