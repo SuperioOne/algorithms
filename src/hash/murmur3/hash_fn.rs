@@ -40,7 +40,6 @@ macro_rules! u128_from {
   }};
 }
 
-#[inline]
 pub fn murmurhash3_32(seed: u32, input: &[u8]) -> u32 {
   let mut h1 = seed;
   let blocks_len = input.len() / 4;
@@ -74,7 +73,6 @@ pub fn murmurhash3_32(seed: u32, input: &[u8]) -> u32 {
 }
 
 #[cfg(target_pointer_width = "64")]
-#[inline]
 pub fn murmurhash3_128(seed: u64, input: &[u8]) -> u128 {
   let mut h1: u64 = seed;
   let mut h2: u64 = seed;

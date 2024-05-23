@@ -12,20 +12,20 @@ pub struct Murmur3Hash128 {
 }
 
 impl Murmur3Hash32 {
-  pub fn new() -> Self {
+  pub const fn new() -> Self {
     Self { seed: 0 }
   }
-  pub fn new_with_seed(seed: u32) -> Self {
+  pub const fn new_with_seed(seed: u32) -> Self {
     Self { seed }
   }
 }
 
 impl Murmur3Hash128 {
-  pub fn new() -> Self {
+  pub const fn new() -> Self {
     Self { seed: 0 }
   }
 
-  pub fn new_with_seed(seed: u64) -> Self {
+  pub const fn new_with_seed(seed: u64) -> Self {
     Self { seed }
   }
 }

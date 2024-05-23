@@ -672,20 +672,8 @@ pub fn cityhash_128(input: &[u8]) -> u128 {
 
 // CRC 256-bit
 
-macro_rules! crc32c {
-  // TODO: Add a software/arm instruction fallback and delete target_feature cfgs from Crc
-  // versions.
-  ($crc:expr, $v:expr) => {
-    unsafe { _mm_crc32_u64($crc, $v) }
-  };
-}
-
-#[cfg(target_arch = "x86_64")]
-#[cfg(target_feature = "sse4.2")]
 #[inline]
 fn cityhash_crc256_long(input: &[u8], seed: u64) -> super::U256 {
-  use std::arch::x86_64::_mm_crc32_u64;
-
   let input_ptr: *const u64 = input.as_ptr().cast();
   let mut result = super::U256(0, 0, 0, 0);
 
@@ -727,9 +715,9 @@ fn cityhash_crc256_long(input: &[u8], seed: u64) -> super::U256 {
       g = g.wrapping_add(e);
       e = e.wrapping_add(z);
       g = g.wrapping_add(x);
-      z = crc32c!(z, b.wrapping_add(g));
-      y = crc32c!(y, e.wrapping_add(h));
-      x = crc32c!(x, f.wrapping_add(a));
+      z = $crate::hash::crc::hash_fn::crc32c_u64_step(z as u32, b.wrapping_add(g)) as u64;
+      y = $crate::hash::crc::hash_fn::crc32c_u64_step(y as u32, e.wrapping_add(h)) as u64;
+      x = $crate::hash::crc::hash_fn::crc32c_u64_step(x as u32, f.wrapping_add(a)) as u64;
       e = e.rotate_right($r);
       c = c.wrapping_add(e);
       offset += 40;
@@ -803,8 +791,6 @@ fn cityhash_crc256_long(input: &[u8], seed: u64) -> super::U256 {
   result
 }
 
-#[cfg(target_arch = "x86_64")]
-#[cfg(target_feature = "sse4.2")]
 #[inline]
 fn cityhash_crc256_short(input: &[u8]) -> super::U256 {
   let padded_buf: &mut [u8] = &mut [0; 240];
@@ -817,8 +803,6 @@ fn cityhash_crc256_short(input: &[u8]) -> super::U256 {
   cityhash_crc256_long(padded_buf, (!input.len() as u32) as u64)
 }
 
-#[cfg(target_arch = "x86_64")]
-#[cfg(target_feature = "sse4.2")]
 pub fn cityhash_crc256(input: &[u8]) -> super::U256 {
   if input.len() >= 240 {
     cityhash_crc256_long(input, 0)
@@ -829,8 +813,6 @@ pub fn cityhash_crc256(input: &[u8]) -> super::U256 {
 
 // CRC 128-bit
 
-#[cfg(target_arch = "x86_64")]
-#[cfg(target_feature = "sse4.2")]
 pub fn cityhash_crc128_with_seed(input: &[u8], seed0: u64, seed1: u64) -> u128 {
   if input.len() <= 900 {
     cityhash_128_with_seed(input, seed0, seed1)
@@ -848,8 +830,6 @@ pub fn cityhash_crc128_with_seed(input: &[u8], seed0: u64, seed1: u64) -> u128 {
   }
 }
 
-#[cfg(target_arch = "x86_64")]
-#[cfg(target_feature = "sse4.2")]
 pub fn cityhash_crc128(input: &[u8]) -> u128 {
   if input.len() <= 900 {
     cityhash_128(input)

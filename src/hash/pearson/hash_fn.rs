@@ -111,7 +111,6 @@ macro_rules! bytes_from_u64 {
   }};
 }
 
-#[inline]
 pub fn pearson_hash_u8(mut seed: u8, input: &[u8]) -> u8 {
   if input.is_empty() {
     return seed;
@@ -125,7 +124,6 @@ pub fn pearson_hash_u8(mut seed: u8, input: &[u8]) -> u8 {
   seed
 }
 
-#[inline]
 pub fn pearson_hash_u16(mut seed: u16, input: &[u8]) -> u16 {
   if input.is_empty() {
     return seed;
@@ -144,7 +142,6 @@ pub fn pearson_hash_u16(mut seed: u16, input: &[u8]) -> u16 {
   seed
 }
 
-#[inline]
 pub fn pearson_hash_u32(mut seed: u32, input: &[u8]) -> u32 {
   if input.is_empty() {
     return seed;
@@ -166,7 +163,6 @@ pub fn pearson_hash_u32(mut seed: u32, input: &[u8]) -> u32 {
   seed
 }
 
-#[inline]
 pub fn pearson_hash_u64(mut seed: u64, input: &[u8]) -> u64 {
   if input.is_empty() {
     return seed;

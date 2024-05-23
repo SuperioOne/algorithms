@@ -137,14 +137,10 @@ impl HashFunc for CityHash128 {
   }
 }
 
-#[cfg(target_arch = "x86_64")]
-#[cfg(target_feature = "sse4.2")]
 pub struct CityHashCrc128 {
   seed: CityHashSeed,
 }
 
-#[cfg(target_arch = "x86_64")]
-#[cfg(target_feature = "sse4.2")]
 impl CityHashCrc128 {
   pub fn new() -> Self {
     Self {
@@ -157,16 +153,12 @@ impl CityHashCrc128 {
   }
 }
 
-#[cfg(target_arch = "x86_64")]
-#[cfg(target_feature = "sse4.2")]
 impl Default for CityHashCrc128 {
   fn default() -> Self {
     Self::new()
   }
 }
 
-#[cfg(target_arch = "x86_64")]
-#[cfg(target_feature = "sse4.2")]
 impl HashFunc for CityHashCrc128 {
   type Output = u128;
 
@@ -181,29 +173,21 @@ impl HashFunc for CityHashCrc128 {
   }
 }
 
-#[cfg(target_arch = "x86_64")]
-#[cfg(target_feature = "sse4.2")]
 #[derive(Debug, Clone, Copy)]
 pub struct U256(u64, u64, u64, u64);
 
-#[cfg(target_arch = "x86_64")]
-#[cfg(target_feature = "sse4.2")]
 impl From<(u64, u64, u64, u64)> for U256 {
   fn from(value: (u64, u64, u64, u64)) -> Self {
     Self(value.0, value.1, value.2, value.3)
   }
 }
 
-#[cfg(target_arch = "x86_64")]
-#[cfg(target_feature = "sse4.2")]
 impl From<U256> for (u64, u64, u64, u64) {
   fn from(value: U256) -> Self {
     (value.0, value.1, value.2, value.3)
   }
 }
 
-#[cfg(target_arch = "x86_64")]
-#[cfg(target_feature = "sse4.2")]
 impl From<(u128, u128)> for U256 {
   fn from(value: (u128, u128)) -> Self {
     Self(
@@ -215,36 +199,26 @@ impl From<(u128, u128)> for U256 {
   }
 }
 
-#[cfg(target_arch = "x86_64")]
-#[cfg(target_feature = "sse4.2")]
 impl Default for U256 {
   fn default() -> Self {
     Self(0, 0, 0, 0)
   }
 }
 
-#[cfg(target_arch = "x86_64")]
-#[cfg(target_feature = "sse4.2")]
 pub struct CityHashCrc256;
 
-#[cfg(target_arch = "x86_64")]
-#[cfg(target_feature = "sse4.2")]
 impl CityHashCrc256 {
   pub fn new() -> Self {
     Self
   }
 }
 
-#[cfg(target_arch = "x86_64")]
-#[cfg(target_feature = "sse4.2")]
 impl Default for CityHashCrc256 {
   fn default() -> Self {
     Self::new()
   }
 }
 
-#[cfg(target_arch = "x86_64")]
-#[cfg(target_feature = "sse4.2")]
 impl HashFunc for CityHashCrc256 {
   type Output = U256;
 

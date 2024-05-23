@@ -1,5 +1,3 @@
-#![allow(non_camel_case_types)]
-
 use super::NumberGenerator;
 
 const A_U8: u8 = 55;
@@ -41,7 +39,7 @@ pub struct LcgUsize {
 }
 
 impl Lcg8 {
-  pub fn new(seed: u8) -> Self {
+  pub const fn new(seed: u8) -> Self {
     Self { state: seed }
   }
 
@@ -50,7 +48,7 @@ impl Lcg8 {
     self
   }
 
-  pub fn get_seed(&self) -> u8 {
+  pub const fn get_seed(&self) -> u8 {
     self.state
   }
 }
