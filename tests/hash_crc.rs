@@ -25,4 +25,14 @@ mod crc_hash {
     assert_eq!(0x5E1EF156, hasher.get_hash(TEST_CASE_7));
     assert_eq!(0x6BDEDC9A, hasher.get_hash(TEST_CASE_8));
   }
+
+  #[test]
+  fn crc32c_with_initial() {
+    let hasher = algorithms::hash::crc::Crc32C::new_with_initial(0x6FA51D98);
+    assert_eq!(0xAC222320, hasher.get_hash(b"567"));
+    assert_eq!(
+      0x6BDEDC9A,
+      hasher.get_hash(b"56789012345678901234567890123456789012345678901")
+    );
+  }
 }

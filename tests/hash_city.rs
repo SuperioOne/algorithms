@@ -206,8 +206,6 @@ mod cityhash {
     );
   }
 
-  #[cfg(target_arch = "x86_64")]
-  #[cfg(target_feature = "sse4.2")]
   #[test]
   fn cityhash_crc256_verify() {
     use algorithms::hash::cityhash::CityHashCrc256;
@@ -262,8 +260,6 @@ mod cityhash {
     );
   }
 
-  #[cfg(target_arch = "x86_64")]
-  #[cfg(target_feature = "sse4.2")]
   #[test]
   fn cityhash_crc128_verify() {
     use algorithms::hash::cityhash::CityHashCrc128;
@@ -291,8 +287,6 @@ mod cityhash {
     );
   }
 
-  #[cfg(target_arch = "x86_64")]
-  #[cfg(target_feature = "sse4.2")]
   #[test]
   fn cityhash_crc128_with_seed() {
     use algorithms::hash::cityhash::CityHashCrc128;

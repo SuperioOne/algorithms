@@ -12,3 +12,4 @@ Rust's standard library. So, use this code at your own risk!
 - [ SMHasher repo for MurmurHash3 ](https://github.com/aappleby/smhasher/tree/master)
 - [ Intel® Digital Random Number Generator (DRNG) Software Implementation Guide ](https://www.intel.com/content/www/us/en/developer/articles/guide/intel-digital-random-number-generator-drng-software-implementation-guide.html)
 - [ CityHash ](https://github.com/google/cityhash)
+- [ A Systematic Approach to Build High Performance, Software-based, CRC Generators ](https://web.archive.org/web/20061216135550/http://www.intel.com/technology/comms/perfnet/download/CRC_generators.pdf)
