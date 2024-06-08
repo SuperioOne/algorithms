@@ -72,69 +72,45 @@ pub fn murmurhash3_32(seed: u32, input: &[u8]) -> u32 {
   fmix32!(h1)
 }
 
-#[cfg(target_pointer_width = "64")]
-pub fn murmurhash3_128(seed: u64, input: &[u8]) -> u128 {
+#[inline]
+fn murmurhash3_128_0_to_15(seed: u64, input: &[u8]) -> u128 {
   let mut h1: u64 = seed;
   let mut h2: u64 = seed;
-  let blocks_len = input.len() / 16;
-  let blocks_ptr: *const u64 = input.as_ptr().cast();
+  let mut k1: u64 = 0;
+  let mut k2: u64;
+  let input_ptr: *const u8 = input.as_ptr();
 
-  for idx in 0..blocks_len {
-    let mut k1 = unsafe { blocks_ptr.add(idx * 2).read_unaligned() };
-    let mut k2 = unsafe { blocks_ptr.add(idx * 2 + 1).read_unaligned() };
+  match input.len() {
+    0..=7 => {
+      let mut lsh: u32 = 0;
 
-    k1 = k1.wrapping_mul(C1_64).rotate_left(31).wrapping_mul(C2_64);
-    h1 ^= k1;
-    h1 = h1
-      .rotate_left(27)
-      .wrapping_add(h2)
-      .wrapping_mul(5)
-      .wrapping_add(0x52DC_E729);
-
-    k2 = k2.wrapping_mul(C2_64).rotate_left(33).wrapping_mul(C1_64);
-    h2 ^= k2;
-    h2 = h2
-      .rotate_left(31)
-      .wrapping_add(h1)
-      .wrapping_mul(5)
-      .wrapping_add(0x3849_5AB5);
-  }
-
-  let tail_len: usize = input.len() & 15;
-
-  if tail_len > 0 {
-    let tail: *const u8 = unsafe { input.as_ptr().byte_add(input.len() - tail_len) };
-    let mut k1: u64 = 0;
-    let mut k2: u64 = 0;
-
-    match tail_len {
-      1..=7 => {
-        let mut l: u32 = 0;
-
-        for i in 0..tail_len {
-          k1 ^= (unsafe { tail.add(i).read() } as u64) << l;
-          l += 8;
-        }
+      for i in 0..input.len() {
+        k1 ^= (unsafe { input_ptr.add(i).read() } as u64) << lsh;
+        lsh += 8;
       }
-      8 => k1 ^= unsafe { (tail as *const u64).read_unaligned() },
-      9..=15 => {
-        k1 ^= unsafe { (tail as *const u64).read_unaligned() };
-        k2 ^= {
-          let t: u64 = unsafe { (tail as *const u64).byte_add(tail_len - 8).read_unaligned() };
-          let r: u32 = 64 - ((tail_len - 8) as u32 * 8);
-
-          t >> r
-        };
-
-        k2 = k2.wrapping_mul(C2_64).rotate_left(33).wrapping_mul(C1_64);
-        h2 ^= k2;
-      }
-      _ => unreachable!(),
     }
+    8 => k1 = unsafe { (input_ptr as *const u64).read_unaligned() },
+    9..=15 => {
+      k1 = unsafe { (input_ptr as *const u64).read_unaligned() };
+      k2 = {
+        let t: u64 = unsafe {
+          (input_ptr as *const u64)
+            .byte_add(input.len() - 8)
+            .read_unaligned()
+        };
+        let r: u32 = 64 - ((input.len() - 8) as u32 * 8);
 
-    k1 = k1.wrapping_mul(C1_64).rotate_left(31).wrapping_mul(C2_64);
-    h1 ^= k1;
+        t >> r
+      };
+
+      k2 = k2.wrapping_mul(C2_64).rotate_left(33).wrapping_mul(C1_64);
+      h2 ^= k2;
+    }
+    _ => unreachable!(),
   }
+
+  k1 = k1.wrapping_mul(C1_64).rotate_left(31).wrapping_mul(C2_64);
+  h1 ^= k1;
 
   h1 ^= input.len() as u64;
   h2 ^= input.len() as u64;
@@ -149,4 +125,70 @@ pub fn murmurhash3_128(seed: u64, input: &[u8]) -> u128 {
   h2 = h2.wrapping_add(h1);
 
   u128_from!(h2, h1)
+}
+
+#[cfg(target_pointer_width = "64")]
+pub fn murmurhash3_128(seed: u64, input: &[u8]) -> u128 {
+  match input.len() {
+    0..=15 => murmurhash3_128_0_to_15(seed, input),
+    _ => {
+      let mut h1: u64 = seed;
+      let mut h2: u64 = seed;
+      let blocks_len = input.len() / 16;
+      let blocks_ptr: *const u64 = input.as_ptr().cast();
+
+      for idx in 0..blocks_len {
+        let mut k1 = unsafe { blocks_ptr.add(idx * 2).read_unaligned() };
+        let mut k2 = unsafe { blocks_ptr.add(idx * 2 + 1).read_unaligned() };
+
+        k1 = k1.wrapping_mul(C1_64).rotate_left(31).wrapping_mul(C2_64);
+        h1 ^= k1;
+        h1 = h1
+          .rotate_left(27)
+          .wrapping_add(h2)
+          .wrapping_mul(5)
+          .wrapping_add(0x52DC_E729);
+
+        k2 = k2.wrapping_mul(C2_64).rotate_left(33).wrapping_mul(C1_64);
+        h2 ^= k2;
+        h2 = h2
+          .rotate_left(31)
+          .wrapping_add(h1)
+          .wrapping_mul(5)
+          .wrapping_add(0x3849_5AB5);
+      }
+
+      let tail_len: usize = input.len() & 15;
+
+      if tail_len > 0 {
+        let tail_ptr: *const u128 = unsafe { input.as_ptr().byte_add(input.len() - 16).cast() };
+        let mut tail_block: u128 = unsafe { tail_ptr.read_unaligned() };
+        let rsh: u32 = 128 - (tail_len as u32 * 8);
+        tail_block = tail_block >> rsh;
+
+        let mut k1: u64 = tail_block as u64;
+        let mut k2: u64 = (tail_block >> 64) as u64;
+
+        k1 = k1.wrapping_mul(C1_64).rotate_left(31).wrapping_mul(C2_64);
+        h1 ^= k1;
+
+        k2 = k2.wrapping_mul(C2_64).rotate_left(33).wrapping_mul(C1_64);
+        h2 ^= k2;
+      }
+
+      h1 ^= input.len() as u64;
+      h2 ^= input.len() as u64;
+
+      h1 = h1.wrapping_add(h2);
+      h2 = h2.wrapping_add(h1);
+
+      h1 = fmix64!(h1);
+      h2 = fmix64!(h2);
+
+      h1 = h1.wrapping_add(h2);
+      h2 = h2.wrapping_add(h1);
+
+      u128_from!(h2, h1)
+    }
+  }
 }
