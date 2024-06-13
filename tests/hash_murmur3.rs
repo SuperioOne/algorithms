@@ -1,4 +1,7 @@
 mod murmur3_hash {
+  use std::ptr::copy_nonoverlapping;
+
+  use algorithms::hash::murmur3::hash_fn::{murmurhash3_128, murmurhash3_32};
   use algorithms::hash::murmur3::{Murmur3Hash128, Murmur3Hash32};
   use algorithms::hash::HashFunc;
 
@@ -53,39 +56,39 @@ mod murmur3_hash {
 
     assert_eq!(0x00000000, hasher.get_hash(TEST_CASE_0));
     assert_eq!(
-      0xAC7D28CC74BDE19D_9A128231F9BD4D82,
+      0x9A128231F9BD4D82_AC7D28CC74BDE19D,
       hasher.get_hash(TEST_CASE_1)
     );
     assert_eq!(
-      0xF1512DD1D2D665DF_2C326650A8F3C564,
+      0x2C326650A8F3C564_F1512DD1D2D665DF,
       hasher.get_hash(TEST_CASE_2)
     );
     assert_eq!(
-      0xE34BBC7BBC071B6C_7A433CA9C49A9347,
+      0x7A433CA9C49A9347_E34BBC7BBC071B6C,
       hasher.get_hash(TEST_CASE_3)
     );
     assert_eq!(
-      0x1F4D7E788D8307ED_821D0936B48B4438,
+      0x821D0936B48B4438_1F4D7E788D8307ED,
       hasher.get_hash(TEST_CASE_4)
     );
     assert_eq!(
-      0x13EB9FB82606F7A6_B4EBEF492FDEF34E,
+      0xB4EBEF492FDEF34E_13EB9FB82606F7A6,
       hasher.get_hash(TEST_CASE_5)
     );
     assert_eq!(
-      0x8236039B7387354D_C3369387D8964920,
+      0xC3369387D8964920_8236039B7387354D,
       hasher.get_hash(TEST_CASE_6)
     );
     assert_eq!(
-      0x4C1E87519FE738BA_72A17AF899D597F1,
+      0x72A17AF899D597F1_4C1E87519FE738BA,
       hasher.get_hash(TEST_CASE_7)
     );
     assert_eq!(
-      0x46967871F3B4400A_9A6096214190A0BD,
+      0x9A6096214190A0BD_46967871F3B4400A,
       hasher.get_hash(TEST_CASE_8)
     );
     assert_eq!(
-      0xD0161EEDC28F1027_270FC32BD6A3F5DE,
+      0x270FC32BD6A3F5DE_D0161EEDC28F1027,
       hasher.get_hash(TEST_CASE_9)
     );
   }
@@ -96,44 +99,108 @@ mod murmur3_hash {
     let hasher = Murmur3Hash128::new_with_seed(seed);
 
     assert_eq!(
-      0x392B208A1DAABBB3_93B0608FE302957A,
+      0x93B0608FE302957A_392B208A1DAABBB3,
       hasher.get_hash(TEST_CASE_0)
     );
     assert_eq!(
-      0xA066A6B76C553018_64A6E65666D07937,
+      0x64A6E65666D07937_A066A6B76C553018,
       hasher.get_hash(TEST_CASE_1)
     );
     assert_eq!(
-      0xEDC485D662A8392E_F85E7E7631D576BA,
+      0xF85E7E7631D576BA_EDC485D662A8392E,
       hasher.get_hash(TEST_CASE_2)
     );
     assert_eq!(
-      0x738A7F3BD2633121_F94573727EC016E5,
+      0xF94573727EC016E5_738A7F3BD2633121,
       hasher.get_hash(TEST_CASE_3)
     );
     assert_eq!(
-      0xE94B201FDADB0A73_60A64FCEA1001606,
+      0x60A64FCEA1001606_E94B201FDADB0A73,
       hasher.get_hash(TEST_CASE_4)
     );
     assert_eq!(
-      0xD4888F3A46F792E3_8B6A978A6926EAD7,
+      0x8B6A978A6926EAD7_D4888F3A46F792E3,
       hasher.get_hash(TEST_CASE_5)
     );
     assert_eq!(
-      0x295373671326D416_48A9D6B322A1C07A,
+      0x48A9D6B322A1C07A_295373671326D416,
       hasher.get_hash(TEST_CASE_6)
     );
     assert_eq!(
-      0xD1117CC8DEEFFB95_C37755B336F3111B,
+      0xC37755B336F3111B_D1117CC8DEEFFB95,
       hasher.get_hash(TEST_CASE_7)
     );
     assert_eq!(
-      0xABA229BC5FEDE8E3_E5AECDBFD78688E6,
+      0xE5AECDBFD78688E6_ABA229BC5FEDE8E3,
       hasher.get_hash(TEST_CASE_8)
     );
     assert_eq!(
-      0x4204D1605934BBF1_373BF069175817C5,
+      0x373BF069175817C5_4204D1605934BBF1,
       hasher.get_hash(TEST_CASE_9)
     );
+  }
+
+  // TODO: move this func to common/mod.rs for other hash function tests
+  fn smhasher_verification<'a, F>(hash_bitsize: usize, hash_fn: F) -> Option<u32>
+  where
+    F: Fn(u64, &[u8]) -> Box<[u8]>,
+  {
+    let hash_bytes = hash_bitsize / 8;
+    let mut hashes = vec![0u8; hash_bytes * 256];
+    let hashes_ptr: *mut u8 = hashes.as_mut_ptr();
+
+    for i in 0..=255 {
+      // Funny note: Do not use (0..=i) for the keys. Actual first key is [] and last key is [0..254].
+      // In C version, array len parameter is `i`, which makes the len 0(empyt array) for the first iteration.
+      let key: Vec<u8> = (0..i).collect();
+      let hash = hash_fn(256 - (i as u64), &key);
+
+      unsafe {
+        copy_nonoverlapping(
+          hash.as_ptr(),
+          hashes_ptr.byte_add((i as usize) * hash_bytes),
+          hash_bytes,
+        )
+      };
+    }
+
+    let final_hash = hash_fn(0, &hashes);
+
+    if final_hash.len() < 4 {
+      None
+    } else {
+      let verification: u32 = *final_hash.get(0).unwrap() as u32
+        | (*final_hash.get(1).unwrap() as u32) << 8
+        | (*final_hash.get(2).unwrap() as u32) << 16
+        | (*final_hash.get(3).unwrap() as u32) << 24;
+
+      Some(verification)
+    }
+  }
+
+  #[test]
+  fn murmur3_128_smhasher_verification() {
+    let verification = smhasher_verification(128, |seed, bytes| {
+      let result = murmurhash3_128(seed, bytes);
+      let mut hash_bytes = Box::new([0u8; 16]);
+      unsafe { hash_bytes.as_mut_ptr().cast::<u128>().write(result) };
+
+      hash_bytes
+    });
+
+    assert_eq!(Some(0x6384BA69), verification);
+  }
+
+  #[test]
+  fn murmur3_32_smhasher_verification() {
+    let verification = smhasher_verification(32, |seed, bytes| {
+      let result = murmurhash3_32(seed as u32, bytes);
+      let mut hash_bytes = Box::new([0u8; 8]);
+      unsafe { hash_bytes.as_mut_ptr().cast::<u32>().write(result) };
+
+      hash_bytes
+    });
+
+    assert_eq!(Some(0xB0F57EE3), verification);
   }
 }

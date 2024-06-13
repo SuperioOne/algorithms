@@ -31,12 +31,13 @@ macro_rules! fmix64 {
   }};
 }
 
+// parameters are Little-endian order
 macro_rules! u128_from {
   ($low:expr, $high:expr) => {{
     let h: u64 = $high;
     let l: u64 = $low;
 
-    ((h as u128) << 64) + (l as u128)
+    ((h as u128) << 64) | (l as u128)
   }};
 }
 
@@ -70,6 +71,23 @@ pub fn murmurhash3_32(seed: u32, input: &[u8]) -> u32 {
 
   h1 ^= input.len() as u32;
   fmix32!(h1)
+}
+
+#[inline]
+fn hash_mix_16(mut h1: u64, mut h2: u64, len: u64) -> u128 {
+  h1 ^= len;
+  h2 ^= len;
+
+  h1 = h1.wrapping_add(h2);
+  h2 = h2.wrapping_add(h1);
+
+  h1 = fmix64!(h1);
+  h2 = fmix64!(h2);
+
+  h1 = h1.wrapping_add(h2);
+  h2 = h2.wrapping_add(h1);
+
+  u128_from!(h1, h2)
 }
 
 #[inline]
@@ -112,19 +130,7 @@ fn murmurhash3_128_0_to_15(seed: u64, input: &[u8]) -> u128 {
   k1 = k1.wrapping_mul(C1_64).rotate_left(31).wrapping_mul(C2_64);
   h1 ^= k1;
 
-  h1 ^= input.len() as u64;
-  h2 ^= input.len() as u64;
-
-  h1 = h1.wrapping_add(h2);
-  h2 = h2.wrapping_add(h1);
-
-  h1 = fmix64!(h1);
-  h2 = fmix64!(h2);
-
-  h1 = h1.wrapping_add(h2);
-  h2 = h2.wrapping_add(h1);
-
-  u128_from!(h2, h1)
+  hash_mix_16(h1, h2, input.len() as u64)
 }
 
 #[cfg(target_pointer_width = "64")]
@@ -161,34 +167,42 @@ pub fn murmurhash3_128(seed: u64, input: &[u8]) -> u128 {
       let tail_len: usize = input.len() & 15;
 
       if tail_len > 0 {
-        let tail_ptr: *const u128 = unsafe { input.as_ptr().byte_add(input.len() - 16).cast() };
-        let mut tail_block: u128 = unsafe { tail_ptr.read_unaligned() };
-        let rsh: u32 = 128 - (tail_len as u32 * 8);
-        tail_block = tail_block >> rsh;
+        match tail_len {
+          1..=8 => {
+            let last_byte: u64 = unsafe {
+              (input.as_ptr() as *const u64)
+                .byte_add(input.len() - 8)
+                .read_unaligned()
+            };
+            let rsh: u32 = 64 - ((tail_len - 8) as u32 * 8);
+            let mut k1 = last_byte >> rsh;
 
-        let mut k1: u64 = tail_block as u64;
-        let mut k2: u64 = (tail_block >> 64) as u64;
+            k1 = k1.wrapping_mul(C1_64).rotate_left(31).wrapping_mul(C2_64);
+            h1 ^= k1;
+          }
+          9..=15 => {
+            let mut tail_block: u128 = unsafe {
+              (input.as_ptr() as *const u128)
+                .byte_add(input.len() - 16)
+                .read_unaligned()
+            };
+            let rsh: u32 = 128 - (tail_len as u32 * 8);
+            tail_block = tail_block >> rsh;
 
-        k1 = k1.wrapping_mul(C1_64).rotate_left(31).wrapping_mul(C2_64);
-        h1 ^= k1;
+            let mut k1: u64 = tail_block as u64;
+            let mut k2: u64 = (tail_block >> 64) as u64;
 
-        k2 = k2.wrapping_mul(C2_64).rotate_left(33).wrapping_mul(C1_64);
-        h2 ^= k2;
+            k1 = k1.wrapping_mul(C1_64).rotate_left(31).wrapping_mul(C2_64);
+            h1 ^= k1;
+
+            k2 = k2.wrapping_mul(C2_64).rotate_left(33).wrapping_mul(C1_64);
+            h2 ^= k2;
+          }
+          _ => unreachable!(),
+        }
       }
 
-      h1 ^= input.len() as u64;
-      h2 ^= input.len() as u64;
-
-      h1 = h1.wrapping_add(h2);
-      h2 = h2.wrapping_add(h1);
-
-      h1 = fmix64!(h1);
-      h2 = fmix64!(h2);
-
-      h1 = h1.wrapping_add(h2);
-      h2 = h2.wrapping_add(h1);
-
-      u128_from!(h2, h1)
+      hash_mix_16(h1, h2, input.len() as u64)
     }
   }
 }
