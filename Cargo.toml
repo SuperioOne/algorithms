@@ -13,9 +13,6 @@ harness = false
 
 [profile.release]
 opt-level=3
-debug = false
-strip = "debuginfo"
-lto = true
 codegen = 1
 
 [dependencies]

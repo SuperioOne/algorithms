@@ -169,13 +169,13 @@ pub fn murmurhash3_128(seed: u64, input: &[u8]) -> u128 {
       if tail_len > 0 {
         match tail_len {
           1..=8 => {
-            let last_byte: u64 = unsafe {
+            let last_block: u64 = unsafe {
               (input.as_ptr() as *const u64)
                 .byte_add(input.len() - 8)
                 .read_unaligned()
             };
-            let rsh: u32 = 64 - ((tail_len - 8) as u32 * 8);
-            let mut k1 = last_byte >> rsh;
+            let rsh: u32 = 64 - (tail_len as u32 * 8);
+            let mut k1 = last_block >> rsh;
 
             k1 = k1.wrapping_mul(C1_64).rotate_left(31).wrapping_mul(C2_64);
             h1 ^= k1;
