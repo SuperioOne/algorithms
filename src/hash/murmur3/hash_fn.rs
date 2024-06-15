@@ -41,7 +41,7 @@ macro_rules! u128_from {
   }};
 }
 
-pub fn murmurhash3_32(seed: u32, input: &[u8]) -> u32 {
+pub fn murmurhash3_32(input: &[u8], seed: u32) -> u32 {
   let mut h1 = seed;
   let blocks_len = input.len() / 4;
   let blocks_ptr: *const u32 = input.as_ptr().cast();
@@ -91,7 +91,7 @@ fn hash_mix_16(mut h1: u64, mut h2: u64, len: u64) -> u128 {
 }
 
 #[inline]
-fn murmurhash3_128_0_to_15(seed: u64, input: &[u8]) -> u128 {
+fn murmurhash3_128_0_to_15(input: &[u8], seed: u64) -> u128 {
   let mut h1: u64 = seed;
   let mut h2: u64 = seed;
   let mut k1: u64 = 0;
@@ -134,9 +134,9 @@ fn murmurhash3_128_0_to_15(seed: u64, input: &[u8]) -> u128 {
 }
 
 #[cfg(target_pointer_width = "64")]
-pub fn murmurhash3_128(seed: u64, input: &[u8]) -> u128 {
+pub fn murmurhash3_128(input: &[u8], seed: u64) -> u128 {
   match input.len() {
-    0..=15 => murmurhash3_128_0_to_15(seed, input),
+    0..=15 => murmurhash3_128_0_to_15(input, seed),
     _ => {
       let mut h1: u64 = seed;
       let mut h2: u64 = seed;

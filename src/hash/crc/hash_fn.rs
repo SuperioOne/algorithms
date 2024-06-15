@@ -94,7 +94,7 @@ pub fn crc32c_u8_step(crc: u32, value: u8) -> u32 {
   (crc >> 8) ^ CRC32C_TABLE[0][(rl & 0x000000FF) as usize]
 }
 
-pub fn crc32c_with_initial(initial: u32, input: &[u8]) -> u32 {
+pub fn crc32c_with_initial(input: &[u8], initial: u32) -> u32 {
   let mut crc: u32 = !initial;
   let mut offset: usize = 0;
   let len: usize = input.len() / 8;
@@ -153,5 +153,5 @@ pub fn crc32c_with_initial(initial: u32, input: &[u8]) -> u32 {
 }
 
 pub fn crc32c(input: &[u8]) -> u32 {
-  crc32c_with_initial(0, input)
+  crc32c_with_initial(input, 0)
 }

@@ -35,7 +35,7 @@ impl HashFunc for PearsonHash16 {
   type Output = u16;
 
   fn get_hash(&self, bytes: &[u8]) -> Self::Output {
-    pearson_hash_u16(self.state, bytes)
+    pearson_hash_u16(bytes, self.state)
   }
 }
 
@@ -43,7 +43,7 @@ impl HashFunc for PearsonHash32 {
   type Output = u32;
 
   fn get_hash(&self, bytes: &[u8]) -> Self::Output {
-    pearson_hash_u32(self.state, bytes)
+    pearson_hash_u32(bytes, self.state)
   }
 }
 
@@ -51,7 +51,7 @@ impl HashFunc for PearsonHash64 {
   type Output = u64;
 
   fn get_hash(&self, bytes: &[u8]) -> Self::Output {
-    pearson_hash_u64(self.state, bytes)
+    pearson_hash_u64(bytes, self.state)
   }
 }
 
@@ -61,12 +61,12 @@ impl HashFunc for PearsonHashUsize {
   fn get_hash(&self, bytes: &[u8]) -> Self::Output {
     #[cfg(target_pointer_width = "64")]
     {
-      pearson_hash_u64(self.state as u64, bytes) as Self::Output
+      pearson_hash_u64(bytes, self.state as u64) as Self::Output
     }
 
     #[cfg(target_pointer_width = "32")]
     {
-      pearson_hash_u32(self.state as u32, bytes) as Self::Output
+      pearson_hash_u32(bytes, self.state as u32) as Self::Output
     }
   }
 }

@@ -30,6 +30,6 @@ impl HashFunc for Crc32C {
   type Output = u32;
 
   fn get_hash(&self, bytes: &[u8]) -> Self::Output {
-    crc32c_with_initial(self.value, bytes)
+    crc32c_with_initial(bytes, self.value)
   }
 }

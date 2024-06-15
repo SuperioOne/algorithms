@@ -46,7 +46,7 @@ impl HashFunc for Murmur3Hash32 {
   type Output = u32;
 
   fn get_hash(&self, bytes: &[u8]) -> Self::Output {
-    murmurhash3_32(self.seed, bytes)
+    murmurhash3_32(bytes, self.seed)
   }
 }
 
@@ -54,6 +54,6 @@ impl HashFunc for Murmur3Hash128 {
   type Output = u128;
 
   fn get_hash(&self, bytes: &[u8]) -> Self::Output {
-    murmurhash3_128(self.seed, bytes)
+    murmurhash3_128(bytes, self.seed)
   }
 }

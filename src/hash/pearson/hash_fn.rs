@@ -124,7 +124,7 @@ pub fn pearson_hash_u8(mut seed: u8, input: &[u8]) -> u8 {
   seed
 }
 
-pub fn pearson_hash_u16(mut seed: u16, input: &[u8]) -> u16 {
+pub fn pearson_hash_u16(input: &[u8], mut seed: u16) -> u16 {
   if input.is_empty() {
     return seed;
   }
@@ -142,7 +142,7 @@ pub fn pearson_hash_u16(mut seed: u16, input: &[u8]) -> u16 {
   seed
 }
 
-pub fn pearson_hash_u32(mut seed: u32, input: &[u8]) -> u32 {
+pub fn pearson_hash_u32(input: &[u8], mut seed: u32) -> u32 {
   if input.is_empty() {
     return seed;
   }
@@ -163,7 +163,7 @@ pub fn pearson_hash_u32(mut seed: u32, input: &[u8]) -> u32 {
   seed
 }
 
-pub fn pearson_hash_u64(mut seed: u64, input: &[u8]) -> u64 {
+pub fn pearson_hash_u64(input: &[u8], mut seed: u64) -> u64 {
   if input.is_empty() {
     return seed;
   }
