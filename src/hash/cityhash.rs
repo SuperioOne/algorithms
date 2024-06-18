@@ -174,7 +174,7 @@ impl HashFunc for CityHashCrc128 {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct U256(u64, u64, u64, u64);
+pub struct U256(pub u64, pub u64, pub u64, pub u64);
 
 impl From<(u64, u64, u64, u64)> for U256 {
   fn from(value: (u64, u64, u64, u64)) -> Self {
