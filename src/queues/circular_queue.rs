@@ -1,7 +1,7 @@
 use std::alloc::{alloc, dealloc, Layout};
 use std::marker::PhantomData;
+use std::ptr;
 use std::ptr::null_mut;
-use std::{isize, ptr};
 
 use super::errors::QueueError;
 use super::Queue;

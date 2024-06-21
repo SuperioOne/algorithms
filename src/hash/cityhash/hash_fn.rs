@@ -63,8 +63,8 @@ fn mur3(mut a: u32, mut h: u32) -> u32 {
 }
 
 #[inline]
-fn hash_32_len_0_to_4(input: &[u8]) -> u32 {
-  let mut b: u32 = 0;
+fn hash_32_len_0_to_4(input: &[u8], seed: u32) -> u32 {
+  let mut b: u32 = seed;
   let mut c: u32 = 9;
 
   for byte in input {
@@ -76,8 +76,8 @@ fn hash_32_len_0_to_4(input: &[u8]) -> u32 {
 }
 
 #[inline]
-fn hash_32_len_5_to_12(input: &[u8]) -> u32 {
-  let mut a: u32 = input.len() as u32;
+fn hash_32_len_5_to_12(input: &[u8], seed: u32) -> u32 {
+  let mut a: u32 = (input.len() as u32).wrapping_add(seed);
   let mut b: u32 = a * 5;
   let mut c: u32 = 9;
   let d = b;
@@ -91,7 +91,7 @@ fn hash_32_len_5_to_12(input: &[u8]) -> u32 {
 }
 
 #[inline]
-fn hash_32_len_13_to_24(input: &[u8]) -> u32 {
+fn hash_32_len_13_to_24(input: &[u8], seed: u32) -> u32 {
   let input_ptr: *const u32 = input.as_ptr().cast();
 
   let a: u32 = read!(input_ptr, (input.len() >> 1) - 4);
@@ -100,19 +100,19 @@ fn hash_32_len_13_to_24(input: &[u8]) -> u32 {
   let d: u32 = read!(input_ptr, input.len() >> 1);
   let e: u32 = read!(input_ptr);
   let f: u32 = read!(input_ptr, input.len() - 4);
-  let h: u32 = input.len() as u32;
+  let h: u32 = (input.len() as u32).wrapping_add(seed);
 
   fmix32!(mur3(f, mur3(e, mur3(d, mur3(c, mur3(b, mur3(a, h)))))))
 }
 
-pub fn cityhash_32(input: &[u8]) -> u32 {
+pub fn cityhash_32(input: &[u8], seed: u32) -> u32 {
   match input.len() {
-    0..=4 => hash_32_len_0_to_4(input),
-    5..=12 => hash_32_len_5_to_12(input),
-    13..=24 => hash_32_len_13_to_24(input),
+    0..=4 => hash_32_len_0_to_4(input, seed),
+    5..=12 => hash_32_len_5_to_12(input, seed),
+    13..=24 => hash_32_len_13_to_24(input, seed),
     _ => {
       let len = input.len();
-      let mut h: u32 = len as u32;
+      let mut h: u32 = (len as u32).wrapping_add(seed);
       let mut g: u32 = C1.wrapping_mul(h);
       let mut f: u32 = g;
       let input_ptr: *const u32 = input.as_ptr().cast();
@@ -739,7 +739,7 @@ fn cityhash_crc256_long(input: &[u8], seed: u64) -> super::U256 {
     permute3!(&mut a, &mut h, &mut e);
 
     iters -= 1;
-    if iters <= 0 {
+    if iters == 0 {
       break;
     }
   }

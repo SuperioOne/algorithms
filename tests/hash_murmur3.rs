@@ -1,4 +1,3 @@
-use algorithms::hash::murmur3::hash_fn::{murmurhash3_128, murmurhash3_32};
 use algorithms::hash::murmur3::{Murmur3Hash128, Murmur3Hash32};
 use algorithms::hash::HashFunc;
 

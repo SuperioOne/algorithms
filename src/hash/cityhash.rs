@@ -5,17 +5,23 @@ use super::HashFunc;
 
 pub mod hash_fn;
 
-pub struct CityHash32;
+pub struct CityHash32 {
+  seed: u32,
+}
 
 impl CityHash32 {
   pub fn new() -> Self {
-    Self
+    Self { seed: 0 }
+  }
+
+  pub fn new_with_seed(seed: u32) -> Self {
+    Self { seed }
   }
 }
 
 impl Default for CityHash32 {
   fn default() -> Self {
-    Self
+    Self::new()
   }
 }
 
@@ -23,7 +29,7 @@ impl HashFunc for CityHash32 {
   type Output = u32;
 
   fn get_hash(&self, bytes: &[u8]) -> Self::Output {
-    cityhash_32(bytes)
+    cityhash_32(bytes, self.seed)
   }
 }
 
