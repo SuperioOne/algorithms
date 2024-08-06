@@ -32,7 +32,7 @@ impl PartialOrd for Vec2D {
 #[test]
 fn even_n_basic() {
   let arr = [-1, 3, 7, 0];
-  let result = algorithms::get_max_subarray(&arr);
+  let result = algorithms::max_sub_array::get_max_subarray(&arr);
 
   assert_eq!([3, 7], result)
 }
@@ -40,7 +40,7 @@ fn even_n_basic() {
 #[test]
 fn odd_n_basic() {
   let arr = [-1, 3, 7, -2, 12];
-  let result = algorithms::get_max_subarray(&arr);
+  let result = algorithms::max_sub_array::get_max_subarray(&arr);
 
   assert_eq!([3, 7, -2, 12], result)
 }
@@ -48,7 +48,7 @@ fn odd_n_basic() {
 #[test]
 fn all_negative() {
   let arr = [-1, -3, -7, -5, -12];
-  let result = algorithms::get_max_subarray(&arr);
+  let result = algorithms::max_sub_array::get_max_subarray(&arr);
 
   assert_eq!([-1], result)
 }
@@ -56,7 +56,7 @@ fn all_negative() {
 #[test]
 fn empty_array() {
   let arr: &[i32] = &[];
-  let result = algorithms::get_max_subarray(arr);
+  let result = algorithms::max_sub_array::get_max_subarray(arr);
 
   assert_eq!(arr, result)
 }
@@ -70,7 +70,7 @@ fn complex_types() {
     Vec2D(-2.0, 4.0),
     Vec2D(1.0, 1.0),
   ];
-  let result = algorithms::get_max_subarray(&arr);
+  let result = algorithms::max_sub_array::get_max_subarray(&arr);
 
   assert_eq!(&arr[2..], result)
 }

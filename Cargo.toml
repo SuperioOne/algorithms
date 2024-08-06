@@ -8,6 +8,11 @@ edition = "2021"
 name = "crc32c_benchmark"
 harness = false
 
+[[bench]]
+name = "find_byte_benchmark"
+harness = false
+
+
 [profile.release]
 opt-level=3
 codegen = 1
