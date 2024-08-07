@@ -9,9 +9,8 @@ name = "crc32c_benchmark"
 harness = false
 
 [[bench]]
-name = "find_byte_benchmark"
+name = "buffer_utils_benchmark"
 harness = false
-
 
 [profile.release]
 opt-level=3

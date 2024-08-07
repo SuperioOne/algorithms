@@ -1,9 +1,11 @@
+use algorithms::buffer_utils::FastBufferUtils;
+
 #[test]
 fn find_byte_index_0_to_7() {
-  let arr: [u8; 7] = [2, 7, 17, 3, 19, 36, 25];
+  let buffer: [u8; 7] = [2, 7, 17, 3, 19, 36, 25];
 
-  for (idx, val) in arr.iter().enumerate() {
-    let result = algorithms::find_byte_index::find_byte_index(&arr, *val);
+  for (idx, val) in buffer.iter().enumerate() {
+    let result = buffer.fast_find(*val);
     assert_eq!(Some(idx), result);
   }
 }
@@ -16,7 +18,7 @@ fn find_byte_index_8_to_63() {
     let buffer: Vec<u8> = (0..len).collect();
 
     for (idx, val) in buffer.iter().enumerate() {
-      let result = algorithms::find_byte_index::find_byte_index(&buffer, *val);
+      let result = buffer.fast_find(*val);
       assert_eq!(Some(idx), result);
     }
   }
@@ -30,7 +32,7 @@ fn find_byte_index_64_to_256() {
     let buffer: Vec<u8> = (0..len).collect();
 
     for (idx, val) in buffer.iter().enumerate() {
-      let result = algorithms::find_byte_index::find_byte_index(&buffer, *val);
+      let result = buffer.fast_find(*val);
       assert_eq!(Some(idx), result);
     }
   }
@@ -42,7 +44,7 @@ fn find_byte_index_not_exists() {
 
   for len in target_len {
     let buffer: Vec<u8> = (0..len).collect();
-    let result = algorithms::find_byte_index::find_byte_index(&buffer, 255u8);
+    let result = buffer.fast_find(255);
     assert_eq!(None, result);
   }
 }

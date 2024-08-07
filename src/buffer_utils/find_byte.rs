@@ -52,12 +52,12 @@ fn find_index_swar(input: &[u8], byte: u8) -> Option<usize> {
 /// Returns first occurance of a byte.
 #[cfg(all(target_arch = "x86_64", target_feature = "avx2"))]
 #[inline]
-pub fn find_byte_index(input: &[u8], byte: u8) -> Option<usize> {
+fn find_byte_avx2(input: &[u8], byte: u8) -> Option<usize> {
   match input.len() {
     0..=7 => find_index_linear(input, byte),
     8..=63 => find_index_swar(input, byte),
     _ => {
-      let mask: std::arch::x86_64::__m256i =
+      let search: std::arch::x86_64::__m256i =
         unsafe { std::arch::x86_64::_mm256_set1_epi8(byte as i8) };
       let addr: *const u8 = input.as_ptr();
       let tail_len = input.len() & 63;
@@ -70,8 +70,8 @@ pub fn find_byte_index(input: &[u8], byte: u8) -> Option<usize> {
           let ptr1 = addr.byte_add(offset + 32).cast();
           let block0 = std::arch::x86_64::_mm256_loadu_si256(ptr0);
           let block1 = std::arch::x86_64::_mm256_loadu_si256(ptr1);
-          let cmp0 = std::arch::x86_64::_mm256_cmpeq_epi8(block0, mask);
-          let cmp1 = std::arch::x86_64::_mm256_cmpeq_epi8(block1, mask);
+          let cmp0 = std::arch::x86_64::_mm256_cmpeq_epi8(block0, search);
+          let cmp1 = std::arch::x86_64::_mm256_cmpeq_epi8(block1, search);
           let pos_l = std::arch::x86_64::_mm256_movemask_epi8(cmp0) as u32;
           let pos_h = std::arch::x86_64::_mm256_movemask_epi8(cmp1) as u32;
           ((pos_h as u64) << 32) | pos_l as u64
@@ -93,8 +93,8 @@ pub fn find_byte_index(input: &[u8], byte: u8) -> Option<usize> {
           let ptr1 = addr.byte_add(offset + 32).cast();
           let block0 = std::arch::x86_64::_mm256_loadu_si256(ptr0);
           let block1 = std::arch::x86_64::_mm256_loadu_si256(ptr1);
-          let cmp0 = std::arch::x86_64::_mm256_cmpeq_epi8(block0, mask);
-          let cmp1 = std::arch::x86_64::_mm256_cmpeq_epi8(block1, mask);
+          let cmp0 = std::arch::x86_64::_mm256_cmpeq_epi8(block0, search);
+          let cmp1 = std::arch::x86_64::_mm256_cmpeq_epi8(block1, search);
           let pos_l = std::arch::x86_64::_mm256_movemask_epi8(cmp0) as u32;
           let pos_h = std::arch::x86_64::_mm256_movemask_epi8(cmp1) as u32;
           ((pos_h as u64) << 32) | pos_l as u64
@@ -113,14 +113,18 @@ pub fn find_byte_index(input: &[u8], byte: u8) -> Option<usize> {
   }
 }
 
-// Fallback for non-avx2 CPUs
-
-/// Returns first occurance of a byte.
-#[cfg(not(all(target_arch = "x86_64", target_feature = "avx2")))]
 #[inline]
-pub fn find_byte_index(input: &[u8], byte: u8) -> Option<usize> {
+pub fn fast_find(input: &[u8], byte: u8) -> Option<usize> {
   match input.len() {
     0..=7 => find_index_linear(input, byte),
+
+    #[cfg(not(all(target_arch = "x86_64", target_feature = "avx2")))]
     _ => find_index_swar(input, byte),
+
+    #[cfg(all(target_arch = "x86_64", target_feature = "avx2"))]
+    8..=63 => find_index_swar(input, byte),
+
+    #[cfg(all(target_arch = "x86_64", target_feature = "avx2"))]
+    _ => find_byte_avx2(input, byte),
   }
 }
