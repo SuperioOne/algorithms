@@ -1,0 +1,12 @@
+[package]
+name = "benchmark"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+criterion = {version = "0.5.1", features = ["html_reports"]} 
+algorithms_buffer_utils = { path = "../algorithms_buffer_utils/"}
+
+[[bench]]
+name = "buffer_utils"
+harness = false

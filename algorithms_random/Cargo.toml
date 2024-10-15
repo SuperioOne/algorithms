@@ -1,0 +1,7 @@
+[package]
+name = "algorithms_random"
+version = "0.1.0"
+edition = "2021"
+description = "Random number generators."
+
+[dependencies]

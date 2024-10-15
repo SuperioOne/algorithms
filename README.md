@@ -1,8 +1,12 @@
 Rust implementations of various data structures and algorithms.
 
-> If you're tempted to use this code for, some mad reasons, be aware that some of these implementations are more "educational examples" than production-ready solutions. 
-For instance, merge sort algorithm is not exactly the most efficient implementation. And then there are the algorithms/data structures that are already implemented in 
-Rust's standard library. So, use this code at your own risk!
+| Crate Name              | Description                                   |
+|-------------------------|-----------------------------------------------|
+| algorithms_buffer_utils | Helper SIMD utils for byte buffers.           |
+| algorithms_core         | Basic data structures like queue, heap etc.   |
+| algorithms_hash         | Hash and checksum algorithms.                 |
+| algorithms_random       | Random number generators.                     |
+| algorithms_sort         | Sort algorithms.                              |
 
 ## Used References
 

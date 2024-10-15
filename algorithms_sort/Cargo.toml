@@ -1,0 +1,9 @@
+[package]
+name = "algorithms_sort"
+version = "0.1.0"
+edition = "2021"
+description = "Sorting algorithms"
+
+[dependencies]
+algorithms_random = { path = "../algorithms_random"}
+algorithms_core = { path = "../algorithms_core"}
